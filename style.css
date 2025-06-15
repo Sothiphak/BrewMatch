@@ -155,10 +155,21 @@ header { background-color: var(--white); box-shadow: 0 4px 6px -1px rgba(0, 0, 0
 @media (min-width: 1024px) { #mobile-filters-toggle { display: none !important; } }
 
 /* Recipes Grid & Cards */
-.recipes-content { width: 100%; }
+.recipes-content { 
+  width: 100%; 
+  min-width: 0; /* Add this line */
+}
 #recipesContainer { display: flex; flex-direction: column; gap: 2rem;}
 .drink-category-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--indigo-200); }
-.horizontal-scroll-container { display: flex; overflow-x: auto; gap: 1.5rem; padding: 0.25rem 0.25rem 1.5rem 0.25rem; -ms-overflow-style: none; scrollbar-width: none; }
+.horizontal-scroll-container { 
+  display: flex; 
+  overflow-x: auto; 
+  gap: 1.5rem; 
+  padding: 0.25rem 1.5rem 1.5rem 0.25rem; /* Increased right padding */
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
+  overscroll-behavior-x: contain; /* This is the fix */
+}
 .horizontal-scroll-container::-webkit-scrollbar { display: none; }
 .recipes-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
 .recipe-card { background-color: var(--white); border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07); overflow: hidden; transition: all 0.3s ease-in-out; display: flex; flex-direction: column; cursor: pointer; width: 280px; flex-shrink: 0; }
@@ -248,3 +259,75 @@ header { background-color: var(--white); box-shadow: 0 4px 6px -1px rgba(0, 0, 0
   z-index: 10;
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Footer Styling */
+footer {
+  background-color: #1f2937; /* A dark gray, almost black background */
+  color: #d1d5db;            /* A light gray color for the text */
+  padding: 2rem 0;           /* Adds generous spacing above and below the text */
+  text-align: center;        /* Centers the copyright text */
+  margin-top: 3rem;          /* Adds more space between the main content and the footer */
+  flex-shrink: 0;            /* Ensures the footer does not shrink */
+}
+
+.footer-text {
+  font-size: 0.875rem;       /* Sets a standard small font size for footer text */
+}
+
+/* --- Final Recipe Detail Page Layout --- */
+
+.recipe-detail-page .back-button {
+  margin-bottom: 0.5rem;
+}
+
+.recipe-detail-page .recipe-name {
+  margin-bottom: 1.5rem;
+  font-size: 2rem; /* Slightly smaller title to save space */
+}
+
+.recipe-page-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Single column on mobile */
+  gap: 2rem;
+}
+
+/* This media query activates the two-column layout on larger screens */
+@media(min-width: 1024px) {
+  .recipe-page-grid {
+    /* Create two columns: 40% for the image, 60% for the text */
+    grid-template-columns: 4fr 6fr;
+    align-items: start;
+  }
+}
+
+.recipe-image-column .recipe-image-detail {
+  width: 100%;
+  height: 100%;
+  max-height: 75vh; /* Limit image height */
+  object-fit: cover;
+  border-radius: 0.75rem;
+  position: sticky; /* The image will stick in place while you scroll the text */
+  top: 90px;
+}
+
+/* This grid arranges the text into responsive columns */
+.recipe-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem 2rem;
+}
+
+.recipe-info-grid .recipe-section-title {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.recipe-info-grid ul, .recipe-info-grid ol {
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.recipe-info-grid li {
+  margin-bottom: 0.5rem;
+}

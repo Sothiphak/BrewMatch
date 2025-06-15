@@ -6,7 +6,7 @@ const initialRecipesData = [
   {id: 4, name: "Lemonade", type: "Other", category: "Fruit Drinks", milk: "None", sweetness: "Medium", temperature: "Cold", base: "Fruit", flavorNotes: ["Tart", "Sweet", "Citrusy"], ingredients: ["1 cup lemon juice", "1 cup sugar", "4 cups water"], instructions: ["Mix and serve over ice."], image: "https://images.unsplash.com/photo-1575596511277-5722d413dbf5?auto=format&fit=crop&q=60", difficulty: "Easy", prepTime: "10 mins", caffeineLevel: "None", tags: ["Refreshing", "Summer"]},
   {id: 5, name: "Cappuccino", type: "Coffee", category: "Milk Coffees", milk: "Dairy", sweetness: "Low", temperature: "Hot", base: "Espresso", flavorNotes: ["Balanced", "Foamy"], ingredients: ["1 shot espresso", "1/3 cup steamed milk", "1/3 cup milk foam"], instructions: ["Layer espresso, steamed milk, and foam."], image: "https://images.unsplash.com/photo-1517256064527-09c73fc730e0?auto=format&fit=crop&q=60", difficulty: "Medium", prepTime: "6 mins", caffeineLevel: "High", tags: ["Italian", "Classic"]},
   {id: 6, name: "Chamomile Tea", type: "Tea", category: "Herbal Teas", milk: "None", sweetness: "None", temperature: "Hot", base: "Herbal Tea", flavorNotes: ["Floral", "Calming"], ingredients: ["1-2 tsp chamomile flowers", "1 cup boiling water"], instructions: ["Steep for 5-7 minutes."], image: "https://images.unsplash.com/photo-1594755380410-9a9745a91700?auto=format&fit=crop&q=60", difficulty: "Easy", prepTime: "7 mins", caffeineLevel: "None", tags: ["Relaxing", "Bedtime"]},
-  {id: 7, name: "Americano", type: "Coffee", category: "Black Coffees", milk: "None", sweetness: "None", temperature: "Hot", base: "Espresso", flavorNotes: ["Bold", "Robust"], ingredients: ["1 shot espresso", "3/4 cup hot water"], instructions: ["Pour hot water over espresso."], image: "drinks/americano.png", difficulty: "Easy", prepTime: "3 mins", caffeineLevel: "High", tags: ["Simple", "Classic"]},
+  {id: 7, name: "Americano", type: "Coffee", category: "Black Coffees", milk: "None", sweetness: "None", temperature: "Hot", base: "Espresso", flavorNotes: ["Bold", "Robust"], ingredients: ["1 shot espresso", "3/4 cup hot water"], instructions: ["Pour hot water over espresso."], image: "https://i.pinimg.com/736x/cb/48/db/cb48db04009801523739569e0f33cfc3.jpg", difficulty: "Easy", prepTime: "3 mins", caffeineLevel: "High", tags: ["Simple", "Classic"]},
   {id: 8, name: "Chai Latte", type: "Tea", category: "Milk Teas", milk: "Dairy", sweetness: "Medium", temperature: "Hot", base: "Black Tea", flavorNotes: ["Spiced", "Aromatic"], ingredients: ["1 chai tea bag", "1/2 cup water", "1/2 cup milk"], instructions: ["Steep tea, add warm milk."], image: "https://images.unsplash.com/photo-1578899805437-4cd14030d3e0?auto=format&fit=crop&q=60", difficulty: "Easy", prepTime: "10 mins", caffeineLevel: "Medium", tags: ["Comfort", "Spicy"]},
   {id: 9, name: "Strawberry Smoothie", type: "Other", category: "Smoothies", milk: "Dairy", sweetness: "Medium", temperature: "Cold", base: "Fruit", flavorNotes: ["Fruity", "Sweet"], ingredients: ["1 cup frozen strawberries", "1/2 cup milk", "1/2 banana"], instructions: ["Blend until smooth."], image: "https://images.unsplash.com/photo-1600718374662-0815315c1657?auto=format&fit=crop&q=60", difficulty: "Easy", prepTime: "5 mins", caffeineLevel: "None", tags: ["Healthy", "Breakfast"]},
   {id: 10, name: "Matcha Latte", type: "Tea", category: "Milk Teas", milk: "Oat", sweetness: "Medium", temperature: "Hot", base: "Matcha", flavorNotes: ["Earthy", "Smooth"], ingredients: ["1 tsp matcha powder", "2 tbsp hot water", "1 cup steamed milk"], instructions: ["Whisk matcha and water, then add milk."], image: "https://images.unsplash.com/photo-1558160074-26c1174ffd39?auto=format&fit=crop&q=60", difficulty: "Medium", prepTime: "7 mins", caffeineLevel: "Medium", tags: ["Trendy", "Earthy"]},
@@ -166,35 +166,41 @@ function showRecipeDetail(recipeId) {
     if (recipe) {
         container.innerHTML = `
             <div class="recipe-detail-page">
-                <button id="back-to-home-btn" class="back-button">
-                    <i data-lucide="arrow-left"></i> Back to all drinks
-                </button>
-                <h1 class="recipe-name">${recipe.name}</h1>
-                <img src="${recipe.image}" alt="${recipe.name}" class="recipe-image-detail" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e0e7ff/4f46e5?text=Image+Not+Found';">
-                <div class="recipe-detail-grid">
-                    <div>
-                        <h3 class="recipe-section-title">Details</h3>
-                        <ul class="details-list">
-                            <li><strong>Difficulty:</strong> ${recipe.difficulty}</li>
-                            <li><strong>Prep Time:</strong> ${recipe.prepTime}</li>
-                            <li><strong>Caffeine:</strong> ${recipe.caffeineLevel}</li>
-                            ${recipe.milk && recipe.milk !== "None" ? `<li><strong>Milk:</strong> ${recipe.milk}</li>` : ''}
-                            <li><strong>Sweetness:</strong> ${recipe.sweetness}</li>
-                            <li><strong>Temperature:</strong> ${recipe.temperature}</li>
-                        </ul>
+                <div class="recipe-page-grid">
+                    <div class="recipe-image-column">
+                        <img src="${recipe.image}" alt="${recipe.name}" class="recipe-image-detail" onerror="this.onerror=null;this.src='httpshttps://placehold.co/600x400/e0e7ff/4f46e5?text=Image+Not+Found';">
                     </div>
-                    <div>
-                        <h3 class="recipe-section-title">Ingredients</h3>
-                        <ul class="ingredients-list">
-                            ${(recipe.ingredients || []).map(ing => `<li>${ing}</li>`).join('')}
-                        </ul>
+
+                    <div class="recipe-text-column">
+                        <button id="back-to-home-btn" class="back-button">
+                            <i data-lucide="arrow-left"></i> Back to all drinks
+                        </button>
+                        <h1 class="recipe-name">${recipe.name}</h1>
+
+                        <div class="recipe-info-grid">
+                            <div class="recipe-details-column">
+                                <h3 class="recipe-section-title">Details</h3>
+                                <ul class="details-list">
+                                    <li><strong>Difficulty:</strong> ${recipe.difficulty}</li>
+                                    <li><strong>Prep Time:</strong> ${recipe.prepTime}</li>
+                                    <li><strong>Caffeine:</strong> ${recipe.caffeineLevel}</li>
+                                    <li><strong>Temp:</strong> ${recipe.temperature}</li>
+                                </ul>
+                            </div>
+                            <div class="recipe-ingredients-column">
+                                <h3 class="recipe-section-title">Ingredients</h3>
+                                <ul class="ingredients-list">
+                                    ${(recipe.ingredients || []).map(ing => `<li>${ing}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="recipe-instructions-column">
+                                <h3 class="recipe-section-title">Instructions</h3>
+                                <ol class="instructions-list">
+                                    ${(recipe.instructions || []).map(step => `<li>${step}</li>`).join('')}
+                                </ol>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <h3 class="recipe-section-title">Instructions</h3>
-                    <ol class="instructions-list">
-                        ${(recipe.instructions || []).map(step => `<li>${step}</li>`).join('')}
-                    </ol>
                 </div>
             </div>
         `;
@@ -206,7 +212,6 @@ function showRecipeDetail(recipeId) {
     }
     lucide.createIcons();
 }
-
 
 // --- FIREBASE AUTH HANDLERS ---
 onAuthStateChanged(auth, user => { updateUIForAuthState(user); });
@@ -233,7 +238,44 @@ async function toggleFavorite(recipeId) {
 }
 
 // --- FILTERING & RENDERING LOGIC ---
-function createFilterSelectors() { const preferenceOptions = { type: ["All", "Coffee", "Tea", "Other"], category: getUniqueValues(state.recipes, 'category'), milk: getUniqueValues(state.recipes, 'milk'), sweetness: getUniqueValues(state.recipes, 'sweetness'), temperature: getUniqueValues(state.recipes, 'temperature'), difficulty: ["Any", "Easy", "Medium", "Hard"], caffeineLevel: getUniqueValues(state.recipes, 'caffeineLevel'), }; filterSelectorsContainer.innerHTML = Object.entries(preferenceOptions).map(([key, options]) => ` <div class="filter-selector"> <label class="filter-label">${key.charAt(0).toUpperCase() + key.slice(1)}</label> <div class="select-container"> <select data-filter-key="${key}" class="filter-select"> ${options.map(opt => `<option value="${opt.toLowerCase()}">${opt}</option>`).join('')} </select> <i data-lucide="chevron-down" class="select-arrow h-5 w-5"></i> </div> </div> `).join(''); document.querySelectorAll('.filter-select').forEach(select => { select.addEventListener('change', (event) => { const key = event.target.dataset.filterKey; const value = event.target.value; if (value === 'all' || value === 'any') { delete state.preferences[key]; } else { state.preferences[key] = value; } applyFiltersAndRender(); }); }); lucide.createIcons(); }
+// --- Replace your existing createFilterSelectors function with this one ---
+
+function createFilterSelectors() {
+    // These are the simplified filter options
+    const preferenceOptions = {
+        category: getUniqueValues(state.recipes, 'category'),
+        temperature: getUniqueValues(state.recipes, 'temperature'),
+        difficulty: ["Any", "Easy", "Medium", "Hard"],
+        caffeineLevel: getUniqueValues(state.recipes, 'caffeineLevel'),
+    };
+
+    filterSelectorsContainer.innerHTML = Object.entries(preferenceOptions).map(([key, options]) => `
+        <div class="filter-selector">
+            <label class="filter-label">${key.charAt(0).toUpperCase() + key.slice(1)}</label>
+            <div class="select-container">
+                <select data-filter-key="${key}" class="filter-select">
+                    ${options.map(opt => `<option value="${opt.toLowerCase()}">${opt}</option>`).join('')}
+                </select>
+                <i data-lucide="chevron-down" class="select-arrow h-5 w-5"></i>
+            </div>
+        </div>
+    `).join('');
+
+    document.querySelectorAll('.filter-select').forEach(select => {
+        select.addEventListener('change', (event) => {
+            const key = event.target.dataset.filterKey;
+            const value = event.target.value;
+            // The "Any" option for difficulty has a value of 'any', so we treat it like 'all'
+            if (value === 'all' || value === 'any') {
+                delete state.preferences[key];
+            } else {
+                state.preferences[key] = value;
+            }
+            applyFiltersAndRender();
+        });
+    });
+    lucide.createIcons();
+}
 function applyFiltersAndRender() { let recipesToFilter = [...state.recipes]; if (state.searchTerm) { recipesToFilter = recipesToFilter.filter(r => r.name.toLowerCase().includes(state.searchTerm) || (r.ingredients && r.ingredients.some(i => i.toLowerCase().includes(state.searchTerm)))); } Object.entries(state.preferences).forEach(([key, value]) => { if (value) { recipesToFilter = recipesToFilter.filter(r => String(r[key]).toLowerCase() === value); } }); switch (state.sortOption) { case "name-asc": recipesToFilter.sort((a, b) => a.name.localeCompare(b.name)); break; case "name-desc": recipesToFilter.sort((a, b) => b.name.localeCompare(a.name)); break; case "prepTime-asc": recipesToFilter.sort((a, b) => parsePrepTime(a.prepTime) - parsePrepTime(b.prepTime)); break; case "prepTime-desc": recipesToFilter.sort((a, b) => parsePrepTime(b.prepTime) - parsePrepTime(a.prepTime)); break; case "difficulty-asc": recipesToFilter.sort((a, b) => mapDifficultyToValue(a.difficulty) - mapDifficultyToValue(b.difficulty)); break; case "difficulty-desc": recipesToFilter.sort((a, b) => mapDifficultyToValue(b.difficulty) - mapDifficultyToValue(a.difficulty)); break; } state.filteredRecipes = recipesToFilter; renderRecipes(); }
 
 function renderRecipes() {

@@ -14,8 +14,8 @@ const initialRecipesData = [
   { id: 12, name: "Flat White", type: "Coffee", category: "Milk Coffees", milk: "Dairy", sweetness: "Low", temperature: "Hot", base: "Espresso", flavorNotes: ["Smooth", "Velvety"], ingredients: ["1 shot espresso", "Steamed milk"], instructions: ["Pour steamed milk over espresso."], image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&q=60", difficulty: "Medium", prepTime: "5 mins", caffeineLevel: "High", tags: ["Australian", "Creamy"] },
   { id: 13, name: "Café au Lait", type: "Coffee", category: "Milk Coffees", milk: "Dairy", sweetness: "Medium", temperature: "Hot", "base": "Brewed Coffee", "flavorNotes": ["Mild", "Balanced"], "ingredients": ["1 cup brewed coffee", "1 cup steamed milk"], "instructions": ["Combine equal parts coffee and steamed milk."], "image": "https://images.unsplash.com/photo-1517256064527-09c73fc730e0?auto=format&fit=crop&q=60", "difficulty": "Easy", "prepTime": "5 mins", "caffeineLevel": "Medium", "tags": ["French", "Breakfast"] },
   { id: 14, name: "Espresso Tonic", type: "Coffee", category: "Flavored Coffees", milk: "None", sweetness: "Low", temperature: "Cold", base: "Espresso", flavorNotes: ["Citrusy", "Effervescent"], ingredients: ["1 shot espresso", "Tonic water", "Ice"], instructions: ["Pour tonic water over ice, add espresso shot."], image: "https://images.unsplash.com/photo-1593443320739-77f7493963da?auto=format&fit=crop&q=60", "difficulty": "Easy", "prepTime": "3 mins", "caffeineLevel": "High", "tags": ["Refreshing", "Modern"] },
-  { id: 15, name: "Cloud Coffee", type: "Coffee", category: "Flavored Coffees", milk: "Dairy", sweetness: "Medium", temperature: "Cold", base: "Espresso", flavorNotes: ["Frothy", "Tropical"], ingredients: ["1 shot espresso", "Coconut water", "Cream", "Ice"], instructions: ["Froth espresso with cream, pour over ice and coconut water."], image: "https://images.unsplash.com/photo-1557142046-c704a3adf364?auto=format&fit=crop&q=60", "difficulty": "Medium", "prepTime": "5 mins", "caffeineLevel": "High", "tags": ["Trendy", "Summer"] },
-  { id: 16, name: "Vietnamese Egg Coffee", type: "Coffee", category: "Flavored Coffees", milk: "None", sweetness: "High", temperature: "Hot", base: "Robusta Coffee", flavorNotes: ["Rich", "Custardy"], ingredients: ["1 shot robusta coffee", "1 egg yolk", "2 tbsp condensed milk"], instructions: ["Whisk egg yolk and condensed milk until frothy, pour over hot coffee."], image: "https://images.unsplash.com/photo-1517701559438-c38c2871d33b?auto=format&fit=crop&q=60", "difficulty": "Medium", "prepTime": "7 mins", "caffeineLevel": "High", tags: ["Vietnamese", "Dessert"] },
+  { id: 15, name: "Cloud Coffee", type: "Coffee", category: "Flavored Coffees", milk: "Dairy", sweetness: "Medium", temperature: "Cold", base: "Espresso", flavorNotes: ["Frothy", "Tropical"], ingredients: ["1 shot espresso", "Coconut water", "Cream", "Ice"], instructions: ["Froth espresso with cream, pour over ice and coconut water."], image: "https://images.unsplash.com/photo-1557142046-c704a3adf364?auto=format&fit=crop&q=60", "difficulty": "Medium", prepTime: "5 mins", caffeineLevel: "High", tags: ["Trendy", "Summer"] },
+  { id: 16, name: "Vietnamese Egg Coffee", type: "Coffee", category: "Flavored Coffees", milk: "None", sweetness: "High", temperature: "Hot", base: "Robusta Coffee", flavorNotes: ["Rich", "Custardy"], ingredients: ["1 shot robusta coffee", "1 egg yolk", "2 tbsp condensed milk"], instructions: ["Whisk egg yolk and condensed milk until frothy, pour over hot coffee."], image: "https://images.unsplash.com/photo-1517701559438-c38c2871d33b?auto=format&fit=crop&q=60", difficulty: "Medium", prepTime: "7 mins", caffeineLevel: "High", tags: ["Vietnamese", "Dessert"] },
   { id: 17, "name": "Affogato", "type": "Coffee", "category": "Dessert Coffees", "milk": "Dairy", "sweetness": "High", "temperature": "Hot & Cold", "base": "Espresso", "flavorNotes": ["Creamy", "Bold"], "ingredients": ["1 scoop vanilla ice cream", "1 shot hot espresso"], "instructions": ["Pour hot espresso over ice cream."], "image": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&q=60", "difficulty": "Easy", "prepTime": "2 mins", "caffeineLevel": "High", "tags": ["Italian", "Dessert"] },
   { id: 18, "name": "Irish Coffee", "type": "Coffee", "category": "Alcoholic Coffees", "milk": "Cream", "sweetness": "Medium", "temperature": "Hot", "base": "Brewed Coffee", "flavorNotes": ["Warm", "Whiskey-infused"], "ingredients": ["1 cup hot coffee", "1 shot Irish whiskey", "1 tsp brown sugar", "Whipped cream"], "instructions": ["Stir whiskey and sugar into coffee, top with whipped cream."], "image": "https://images.unsplash.com/photo-1517256064527-09c73fc730e0?auto=format&fit=crop&q=60", "difficulty": "Medium", "prepTime": "5 mins", "caffeineLevel": "Medium", "tags": ["Classic", "Evening"] },
   { id: 19, "name": "Cortado", "type": "Coffee", "category": "Milk Coffees", "milk": "Dairy", "sweetness": "Low", "temperature": "Hot", "base": "Espresso", "flavorNotes": ["Balanced", "Smooth"], "ingredients": ["1 shot espresso", "1 shot steamed milk"], "instructions": ["Combine equal parts espresso and steamed milk."], "image": "https://images.unsplash.com/photo-1593443320739-77f7493963da?auto=format&fit=crop&q=60", "difficulty": "Easy", "prepTime": "4 mins", "caffeineLevel": "High", "tags": ["Spanish", "Minimalist"] },
@@ -141,7 +141,7 @@ let state = {
   filteredRecipes: [],
   preferences: {},
   searchTerm: "",
-  sortOption: "default",
+  // Removed sortOption
   userFavorites: new Set(),
   unsubscribeFavorites: null,
   currentPage: "home",
@@ -156,19 +156,18 @@ const favoritesContainer = document.getElementById('favoritesContainer');
 const loginModal = document.getElementById('login-modal');
 const registerModal = document.getElementById('register-modal');
 const searchInput = document.getElementById('searchInput');
-const sortSelect = document.getElementById('sortSelect');
+// Removed sortSelect
 const filterSelectorsContainer = document.getElementById('filterSelectors');
 const resetFiltersBtn = document.getElementById('resetFilters');
 const mobileFiltersToggle = document.getElementById('mobile-filters-toggle');
+const filtersSidebar = document.getElementById('filters-sidebar'); // Correctly captured filtersSidebar
 const navLinks = document.querySelectorAll('.nav-link');
-const mainFooter = document.getElementById('main-footer'); // Get the footer element
+const mainFooter = document.getElementById('main-footer');
 
 
 // --- HELPER FUNCTIONS ---
 const getUniqueValues = (recipes, key) => {
   const allValues = new Set(recipes.flatMap(recipe => {
-    // Ensure we handle arrays of tags/flavorNotes correctly if they were implemented differently
-    // For single string values, it's just recipe[key]
     if (Array.isArray(recipe[key])) {
       return recipe[key];
     }
@@ -177,29 +176,22 @@ const getUniqueValues = (recipes, key) => {
   return ["Any", ...Array.from(allValues).sort()];
 };
 
+// These helper functions are no longer used for sorting but kept as utilities if needed
 const parsePrepTime = (timeString) => {
-  if (!timeString) return Infinity; // Handle undefined or null timeString
-  timeString = timeString.toLowerCase(); // Convert to lowercase for consistent matching
-
-  let totalMinutes = 0; // Initialize to 0, not Infinity, for calculation
-
-  // Handle "X mins" format
+  if (!timeString) return Infinity;
+  timeString = timeString.toLowerCase();
+  let totalMinutes = 0;
   const minsMatch = timeString.match(/(\d+)\s*mins?/);
   if (minsMatch) {
     totalMinutes += parseInt(minsMatch[1], 10);
   }
-
-  // Handle "X hrs" or "X-Y hrs" format
   const hrsMatch = timeString.match(/(\d+)-?(\d*)\s*hrs?/);
   if (hrsMatch) {
-    const hours = parseInt(hrsMatch[1], 10); // Take the first number for single or range
-    totalMinutes += hours * 60; // Convert hours to minutes
+    const hours = parseInt(hrsMatch[1], 10);
+    totalMinutes += hours * 60;
   }
-
-  // If after all parsing, totalMinutes is still 0 (meaning no time found), return Infinity to push to end
   return totalMinutes === 0 ? Infinity : totalMinutes;
 };
-
 
 const mapDifficultyToValue = (difficulty) => {
   const difficultyMap = {
@@ -207,32 +199,30 @@ const mapDifficultyToValue = (difficulty) => {
     "medium": 2,
     "hard": 3
   };
-  // Convert difficulty to lowercase before lookup for robustness
-  // If difficulty is null or undefined, toLowerCase() would throw an error.
   if (typeof difficulty === 'string') {
-    return difficultyMap[difficulty.toLowerCase()] || 4; // Default to 4 for unknown or "Any"
+    return difficultyMap[difficulty.toLowerCase()] || 4;
   }
-  return 4; // Return 4 for non-string difficulties (e.g., null, undefined, or empty)
+  return 4;
 };
 
 // --- MODAL & UI LOGIC ---
 function openModal(modal) {
   modal.classList.remove('hidden');
-  mainFooter.style.display = 'none'; // Hide footer when modal is open
+  mainFooter.style.display = 'none';
 }
 
 function closeModal(modal) {
   modal.classList.add('hidden');
-  // Only show footer if neither initial view nor any modal is active
   const isAnyModalOpen = !loginModal.classList.contains('hidden') || !registerModal.classList.contains('hidden');
   if (initialView.style.display === 'none' && !isAnyModalOpen) {
     mainFooter.style.display = 'block';
   } else {
-    mainFooter.style.display = 'none'; // Keep hidden if initial view or another modal is active
+    mainFooter.style.display = 'none';
   }
   const errorElement = modal.querySelector('.modal-error');
   if (errorElement) errorElement.textContent = '';
 }
+
 function setupModalTriggers() {
   document.getElementById('prompt-login-btn').addEventListener('click', () => openModal(loginModal));
   document.getElementById('prompt-register-btn').addEventListener('click', () => openModal(registerModal));
@@ -250,7 +240,7 @@ function updateUIForAuthState(user) {
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
     listenToFavorites(user.uid);
     showPage(state.currentPage);
-    mainFooter.style.display = 'block'; // Show footer when logged in and content is visible
+    mainFooter.style.display = 'block';
   } else {
     initialView.style.display = 'flex';
     pagesContainer.classList.add('hidden');
@@ -259,10 +249,8 @@ function updateUIForAuthState(user) {
     document.getElementById('register-nav-btn').addEventListener('click', () => openModal(registerModal));
     if (state.unsubscribeFavorites) { state.unsubscribeFavorites(); state.unsubscribeFavorites = null; }
     state.userFavorites.clear();
-    // When logged out, the initial view is shown, and the footer should be hidden.
-    // The "home" page content might still technically be in the DOM but hidden by initialView.
-    showPage('home'); // This ensures state.currentPage is 'home' for proper navigation later
-    mainFooter.style.display = 'none'; // Hide footer when initial view is active
+    showPage('home');
+    mainFooter.style.display = 'none';
   }
   lucide.createIcons();
 }
@@ -278,7 +266,6 @@ function showPage(pageId) {
     }
   });
 
-  // Update nav links active state, but don't show active for recipe-detail
   document.querySelectorAll('.nav-link').forEach(link => {
     link.classList.toggle('active', link.dataset.page === pageId);
   });
@@ -286,9 +273,8 @@ function showPage(pageId) {
   if (pageId === 'favorites') {
     renderFavoritesPage();
   } else if (pageId === 'home') {
-    applyFiltersAndRender(); // Re-apply filters and render when returning to home
+    applyFiltersAndRender();
   }
-  // No special action for 'about' or 'recipe-detail' as they are static or populated on demand
 }
 
 function setupNavigation() {
@@ -373,7 +359,6 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   errorEl.textContent = '';
 
   try {
-    // Set persistence based on "Remember me" checkbox
     await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
     await signInWithEmailAndPassword(auth, email, password);
     closeModal(loginModal);
@@ -464,6 +449,7 @@ function createFilterSelectors() {
   });
   lucide.createIcons();
 }
+
 function applyFiltersAndRender() {
   let recipesToFilter = [...state.recipes];
 
@@ -477,37 +463,13 @@ function applyFiltersAndRender() {
 
   // Apply preference filters
   Object.entries(state.preferences).forEach(([key, value]) => {
-    if (value && value !== 'any') { // Ensure 'any' doesn't filter
+    if (value && value !== 'any') {
       recipesToFilter = recipesToFilter.filter(r =>
         String(r[key]).toLowerCase() === value
       );
     }
   });
 
-  // Apply sorting
-  switch (state.sortOption) {
-    case "name-asc":
-      recipesToFilter.sort((a, b) => a.name.localeCompare(b.name));
-      break;
-    case "name-desc":
-      recipesToFilter.sort((a, b) => b.name.localeCompare(a.name));
-      break;
-    case "prepTime-asc":
-      recipesToFilter.sort((a, b) => parsePrepTime(a.prepTime) - parsePrepTime(b.prepTime));
-      break;
-    case "prepTime-desc":
-      recipesToFilter.sort((a, b) => parsePrepTime(b.prepTime) - parsePrepTime(a.prepTime));
-      break;
-    case "difficulty-asc":
-      recipesToFilter.sort((a, b) => mapDifficultyToValue(a.difficulty) - mapDifficultyToValue(b.difficulty));
-      break;
-    case "difficulty-desc":
-      recipesToFilter.sort((a, b) => mapDifficultyToValue(b.difficulty) - mapDifficultyToValue(a.difficulty));
-      break;
-    // For 'default' or any unrecognized option, no specific sort is applied,
-    // so it maintains original order or whatever was last applied.
-  }
-  
   state.filteredRecipes = recipesToFilter;
   renderRecipes();
 }
@@ -532,7 +494,6 @@ function renderFavoritesPage() {
   if (favoriteRecipes.length === 0) {
     favoritesContainer.innerHTML = `<div class="no-results"><i data-lucide="heart-off" class="no-results-icon"></i><h3>No Favorites Yet</h3><p>Click the heart on a drink to save it here.</p></div>`;
   } else {
-    // Use recipes-grid-container for favorites as it's a static grid, not a horizontal scroll
     favoritesContainer.classList.add('recipes-grid-container'); 
     favoritesContainer.innerHTML = favoriteRecipes.map(createRecipeCardHTML).join('');
   }
@@ -563,17 +524,22 @@ function updateFavoriteIcons() { document.querySelectorAll('.favorite-button').f
 // --- EVENT LISTENERS ---
 function attachEventListeners() {
   searchInput.addEventListener('input', (e) => { state.searchTerm = e.target.value.toLowerCase(); applyFiltersAndRender(); });
-  sortSelect.addEventListener('change', (e) => { state.sortOption = e.target.value; applyFiltersAndRender(); });
   resetFiltersBtn.addEventListener('click', () => { 
     state.preferences = {}; 
     state.searchTerm = ""; 
-    state.sortOption = "default"; 
     searchInput.value = ""; 
-    sortSelect.value = "default"; 
-    document.querySelectorAll('.filter-select').forEach(s => s.selectedIndex = 0); 
-    applyFiltersAndRender(); // Apply filters to show all recipes in default state
+    // Ensure all filter selects are reset to 'Any'
+    document.querySelectorAll('.filter-select').forEach(s => s.value = 'any'); 
+    applyFiltersAndRender();
   });
-  mobileFiltersToggle.addEventListener('click', () => { filtersSidebar.classList.toggle('active'); mobileFiltersToggle.querySelector('span').textContent = filtersSidebar.classList.contains('active') ? 'Hide Filters' : 'Show Filters'; });
+  mobileFiltersToggle.addEventListener('click', () => { 
+    filtersSidebar.classList.toggle('active'); 
+    // Update the text content of the span inside the toggle button
+    const toggleTextSpan = mobileFiltersToggle.querySelector('span');
+    if (toggleTextSpan) { // Check if span exists before accessing textContent
+      toggleTextSpan.textContent = filtersSidebar.classList.contains('active') ? 'Hide Filters' : 'Show Filters';
+    }
+  });
 }
 function attachCardEventListeners() {
   const mainContentArea = document.getElementById('content-wrapper');
@@ -615,9 +581,8 @@ function init() {
   attachEventListeners();
   attachCardEventListeners();
 
-  // IMPORTANT: Call applyFiltersAndRender initially to populate the home page
-  // This will also hide/show the footer correctly based on the initial auth state.
   applyFiltersAndRender(); 
+  updateUIForAuthState(auth.currentUser);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -59,21 +59,6 @@
                 <input type="text" id="searchInput" placeholder="Search name, ingredient..." class="search-input" />
                 <i data-lucide="search" class="search-icon h-5 w-5"></i>
               </div>
-              <div class="filter-selector">
-                <label class="filter-label" for="sortSelect"><i data-lucide="arrow-up-down" class="filter-icon h-5 w-5"></i> Sort By</label>
-                <div class="select-container">
-                  <select id="sortSelect" class="filter-select">
-                    <option value="default">Default</option>
-                    <option value="name-asc">Name (A-Z)</option>
-                    <option value="name-desc">Name (Z-A)</option>
-                    <option value="prepTime-asc">Prep Time (Shortest)</option>
-                    <option value="prepTime-desc">Prep Time (Longest)</option>
-                    <option value="difficulty-asc">Difficulty (Easiest)</option>
-                    <option value="difficulty-desc">Difficulty (Hardest)</option>
-                  </select>
-                  <i data-lucide="chevron-down" class="select-arrow h-5 w-5"></i>
-                </div>
-              </div>
               <div id="filterSelectors"></div>
               <button id="resetFilters" class="reset-filters">
                 <i data-lucide="x" class="reset-icon h-5 w-5"></i> Reset All Filters
@@ -101,7 +86,7 @@
           </div>
       </div>
     </div>
-    <footer>
+    <footer id="main-footer">
       <div class="container"><p class="footer-text">&copy; <span id="currentYear"></span> Sip Savvy. All Rights Reserved.</p></div>
     </footer>
   </div>
@@ -113,6 +98,10 @@
       <form id="login-form">
         <div class="input-group"><label for="login-email">Email</label><input type="email" id="login-email" name="login-email" required /></div>
         <div class="input-group"><label for="login-password">Password</label><input type="password" id="login-password" name="login-password" required /></div>
+        <div class="input-group checkbox-group">
+          <input type="checkbox" id="login-remember-me" name="login-remember-me" />
+          <label for="login-remember-me">Remember me</label>
+        </div>
         <div id="login-error" class="modal-error"></div>
         <button type="submit" class="modal-button">Login</button>
       </form>
@@ -126,6 +115,7 @@
       <form id="register-form">
         <div class="input-group"><label for="register-email">Email</label><input type="email" id="register-email" name="register-email" required /></div>
         <div class="input-group"><label for="register-password">Password</label><input type="password" id="register-password" name="register-password" required /></div>
+        <div class="input-group"><label for="register-confirm-password">Confirm Password</label><input type="password" id="register-confirm-password" name="register-confirm-password" required /></div>
         <div id="register-error" class="modal-error"></div>
         <button type="submit" class="modal-button">Register</button>
       </form>

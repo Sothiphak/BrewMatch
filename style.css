@@ -183,10 +183,10 @@ header {
 /* ===== Updated Mobile Nav Sidebar ===== */
 .mobile-nav {
   position: fixed;
-  top: 0;
+  top: 70px; /* Changed from 0 to 70px to align with filters-sidebar */
   right: 0;
   width: 280px;
-  height: 100vh;
+  height: calc(100vh - 70px); /* Adjust height to fill remaining viewport below header */
   z-index: 40;
   background-color: var(--white); /* Changed to white to match filter sidebar */
   padding: 1.5rem;
@@ -203,17 +203,7 @@ header {
   transform: translateX(0);
 }
 
-/* Close button for mobile nav */
-.mobile-nav-close-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  color: var(--gray-600);
-  cursor: pointer;
-  z-index: 45; /* Above mobile nav content */
-}
+
 
 /* Adjust .mobile-nav .nav-link styles for white background */
 .mobile-nav .nav-link {

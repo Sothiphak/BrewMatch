@@ -1453,10 +1453,7 @@ function init() {
     mobileNav.classList.toggle('hidden'); //
   });
 
-  // NEW: Add event listener for mobile nav close button
-  document.querySelector('.mobile-nav-close-button').addEventListener('click', () => { //
-    mobileNav.classList.add('hidden'); //
-  });
+  
 
   setupModalTriggers();
   setupNavigation();

@@ -28,7 +28,6 @@ body {
   background-color: var(--gray-100);
   color: var(--gray-700);
   min-height: 100vh;
-  /* Prevent horizontal scroll issues when filter sidebar slides in */
   overflow-x: hidden;
 }
 
@@ -49,7 +48,7 @@ body {
   flex-grow: 1;
 }
 
-/* Header & Navigation */
+
 header {
   background-color: var(--white);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
@@ -110,7 +109,6 @@ header {
   transform: scaleX(1);
 }
 
-/* Mobile First: Hide desktop auth buttons and show hamburger */
 .user-info {
   display: none;
 }
@@ -123,7 +121,7 @@ header {
   color: var(--gray-700);
 }
 
-/* Desktop Styles */
+
 @media (min-width: 768px) {
   .main-nav {
     display: flex;
@@ -180,72 +178,68 @@ header {
   background-color: var(--indigo-700);
 }
 
-/* ===== Updated Mobile Nav Sidebar ===== */
+
 .mobile-nav {
   position: fixed;
-  top: 70px; /* Changed from 0 to 70px to align with filters-sidebar */
+  top: 70px; 
   right: 0;
   width: 280px;
-  height: calc(100vh - 70px); /* Adjust height to fill remaining viewport below header */
+  height: calc(100vh - 70px); 
   z-index: 40;
-  background-color: var(--white); /* Changed to white to match filter sidebar */
+  background-color: var(--white); 
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   transform: translateX(100%);
   transition: transform 0.3s ease-in-out;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07); /* Added shadow */
-  overflow-y: auto; /* Allow scrolling */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07); 
+  overflow-y: auto;
 }
 
 .mobile-nav:not(.hidden) {
   transform: translateX(0);
 }
 
-
-
-/* Adjust .mobile-nav .nav-link styles for white background */
 .mobile-nav .nav-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  color: var(--gray-700); /* Darker text for white background */
+  color: var(--gray-700); 
   font-size: 1rem;
   font-weight: 500;
   text-decoration: none;
 }
 
 .mobile-nav .nav-link:hover {
-  background-color: var(--gray-100); /* Lighter hover background */
+  background-color: var(--gray-100);
 }
 
 .mobile-nav .nav-link.active {
-  background-color: var(--indigo-100); /* Active background color */
-  color: var(--indigo-600); /* Active text color */
+  background-color: var(--indigo-100); 
+  color: var(--indigo-600); 
   font-weight: 600;
 }
 
 .mobile-nav .nav-link i {
   width: 20px;
   height: 20px;
-  color: var(--indigo-600); /* Icons to match active color */
+  color: var(--indigo-600);
 }
 
 .mobile-nav .nav-link:after {
   display: none;
 }
 
-/* Mobile auth links styling */
 #mobile-auth-links {
-  margin-top: 1rem; /* Space between nav links and auth buttons */
+  margin-top: 1rem; 
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--gray-200); /* Separator */
+  border-top: 1px solid var(--gray-200);
 }
 
 #mobile-auth-links .auth-button {
@@ -287,7 +281,6 @@ header {
   background-color: var(--red-600);
 }
 
-/* Optional: Overlay for when mobile nav is active */
 .mobile-nav:not(.hidden)::after {
     content: '';
     position: fixed;
@@ -295,18 +288,16 @@ header {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: white; /* Dark semi-transparent overlay */
-    z-index: -1; /* Behind the sidebar content */
+    background-color: white; 
+    z-index: -1; 
 }
 
-/* Media query to hide mobile nav on desktop */
 @media (min-width: 768px) {
   .mobile-nav {
     display: none !important;
   }
 }
 
-/* Initial View (Logged Out) */
 .initial-view-container {
   display: flex;
   align-items: center;
@@ -376,7 +367,6 @@ header {
   background-color: var(--indigo-100);
 }
 
-/* Page containers */
 .page-content {
   display: none;
   padding-top: 1.5rem;
@@ -396,35 +386,32 @@ header {
   border-bottom: 2px solid var(--indigo-200);
 }
 
-/* Home Page Layout */
 .main-content {
   display: flex;
-  flex-direction: column; /* Stacked on mobile */
+  flex-direction: column; 
   gap: 1.5rem;
 }
 
-/* Filters Sidebar */
 .filters-sidebar {
-  width: 280px; /* Fixed width for the sliding sidebar */
-  background-color: var(--white); /* Changed to white */
+  width: 280px; 
+  background-color: var(--white); 
   border-radius: 0.75rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
   padding: 1.5rem;
-  position: fixed; /* Fixed position for overlay effect */
-  top: 70px; /* Below the header */
+  position: fixed; 
+  top: 70px; 
   left: 0;
-  bottom: 0; /* Extends to the bottom */
-  z-index: 20; /* Below mobile nav (z-index 40), above main content */
-  overflow-y: auto; /* Allow scrolling if filters are tall */
-  transform: translateX(-100%); /* Initially hidden off-screen to the left */
-  transition: transform 0.3s ease-in-out; /* Smooth slide transition */
+  bottom: 0; 
+  z-index: 20; 
+  overflow-y: auto;
+  transform: translateX(-100%); 
+  transition: transform 0.3s ease-in-out;
 }
 
 .filters-sidebar.active {
-  transform: translateX(0); /* Slide into view */
+  transform: translateX(0); 
 }
 
-/* Overlay for when sidebar is active on mobile */
 .filters-sidebar.active::after {
     content: '';
     position: fixed;
@@ -432,18 +419,16 @@ header {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: white; /* Dark semi-transparent overlay */
-    z-index: -1; /* Behind the sidebar content */
+    background-color: white; 
+    z-index: -1;
 }
 
-
-/* Toggle button for mobile filters */
 #mobile-filters-toggle {
     background-color: var(--white);
     color: var(--indigo-600);
     padding: 0.75rem;
     border-radius: 0.5rem;
-    margin-bottom: 1rem; /* Space below button on mobile */
+    margin-bottom: 1rem; 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -452,7 +437,6 @@ header {
     width: 100%;
 }
 
-/* New: Close button for filters sidebar on mobile */
 .filters-close-button {
   position: absolute;
   top: 1rem;
@@ -461,45 +445,42 @@ header {
   border: none;
   color: var(--gray-600);
   cursor: pointer;
-  display: none; /* Hidden by default, shown on mobile via media query */
-  z-index: 25; /* Above filter content */
+  display: none; 
+  z-index: 25; 
 }
 
-@media (max-width: 1023px) { /* Adjust breakpoint as needed for mobile-specific styles */
+@media (max-width: 1023px) { 
   .filters-close-button {
-    display: block; /* Show close button on mobile */
+    display: block; 
   }
 }
 
-
-/* Desktop Styles for Home Page */
 @media (min-width: 1024px) {
   .main-content {
-    flex-direction: row; /* Side-by-side on desktop */
+    flex-direction: row; 
     gap: 2rem;
     align-items: flex-start;
   }
   .filters-sidebar {
-    position: sticky; /* Sticky on desktop */
-    width: 280px; /* Fixed width */
-    flex-shrink: 0; /* Prevents sidebar from shrinking */
-    top: 90px; /* Adjust based on header height */
-    height: calc(100vh - 110px); /* Fill remaining viewport height */
-    transform: translateX(0); /* Always visible on desktop */
-    margin-right: 0; /* No extra margin pushing content */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07); /* Re-apply shadow on desktop */
+    position: sticky; 
+    width: 280px; 
+    flex-shrink: 0; 
+    top: 90px; 
+    height: calc(100vh - 110px);
+    transform: translateX(0); 
+    margin-right: 0; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07); 
   }
   .filters-sidebar::after {
-      content: none; /* Remove overlay on desktop */
+      content: none;
   }
   #mobile-filters-toggle {
-    display: none !important; /* Hide toggle on desktop */
+    display: none !important;
   }
-  .filters-close-button { /* Hide close button on desktop */
+  .filters-close-button { 
     display: none;
   }
 }
-
 
 .filters-title {
   font-size: 1.25rem;
@@ -599,7 +580,6 @@ header {
 }
 
 
-/* Recipes Grid & Cards */
 .recipes-content {
   width: 100%;
   min-width: 0;
@@ -740,7 +720,6 @@ header {
   color: var(--gray-400);
 }
 
-/* About Us & Modals */
 .about-us-container {
   background-color: var(--white);
   padding: 2.5rem;
@@ -811,7 +790,7 @@ header {
   border-radius: 0.375rem;
 }
 
-/* Checkbox specific styles */
+
 .input-group.checkbox-group {
     display: flex;
     align-items: center;
@@ -1055,7 +1034,6 @@ footer {
   margin-bottom: 0.5rem;
 }
 
-/* Hide footer when modal is open OR initial view is active */
 .modal-backdrop:not(.hidden) ~ #main-footer,
 #initial-view:not(.hidden) ~ #main-footer {
     display: none;

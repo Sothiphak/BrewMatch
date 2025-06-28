@@ -1,3 +1,4 @@
+// Data: Initial set of drink recipes. This data is considered static for this refactoring.
 const initialRecipesData = [
   {
     id: 1,
@@ -900,6 +901,8 @@ const initialRecipesData = [
     tags: ["Dessert Drink", "Blended"]
   }
 ];
+
+// Firebase Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth,
@@ -918,6 +921,7 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// Firebase Configuration (Replace with your actual Firebase config)
 const firebaseConfig = {
   apiKey: "AIzaSyCAPzgrJnwJU9F5rKjWvQhQk4vM9Icqi6s",
   authDomain: "sip-savvy-2a069.firebaseapp.com",
@@ -928,51 +932,74 @@ const firebaseConfig = {
   measurementId: "G-Y6VTQ10XSM"
 };
 
-// Initialize Firebase
+// Initialize Firebase services
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- STATE MANAGEMENT ---
-let state = {
-  recipes: initialRecipesData,
-  filteredRecipes: [],
-  preferences: {},
-  searchTerm: "",
-  userFavorites: new Set(),
-  unsubscribeFavorites: null,
-  currentPage: "home",
+// --- GLOBAL STATE MANAGEMENT ---
+// Centralized state object to manage application data.
+let appState = {
+  recipes: initialRecipesData, // All available recipes
+  filteredRecipes: [], // Recipes after applying filters and search
+  preferences: {}, // Current filter selections (e.g., {category: "coffee"})
+  searchTerm: "", // Current search input value
+  userFavorites: new Set(), // Set of favorite recipe IDs for the current user
+  unsubscribeFavorites: null, // Stores the unsubscribe function for Firestore listener
+  currentPage: "home", // Tracks the currently active page ('home', 'favorites', 'about', 'recipe-detail')
 };
 
-// --- DOM ELEMENTS ---
-const pagesContainer = document.getElementById('pages-container');
-const initialView = document.getElementById('initial-view');
-const authContainer = document.getElementById('auth-container');
-const recipesContainer = document.getElementById('recipesContainer');
-const favoritesContainer = document.getElementById('favoritesContainer');
-const loginModal = document.getElementById('login-modal');
-const registerModal = document.getElementById('register-modal');
-const mobileFiltersToggle = document.getElementById('mobile-filters-toggle'); // Element that remains stable
-const filtersSidebar = document.getElementById('filters-sidebar'); 
-const navLinks = document.querySelectorAll('.nav-link');
-const mainFooter = document.getElementById('main-footer');
+// --- CACHED DOM ELEMENTS ---
+// Store references to frequently accessed DOM elements to avoid repeated queries.
+const domElements = {
+  pagesContainer: document.getElementById('pages-container'),
+  initialView: document.getElementById('initial-view'),
+  authContainer: document.getElementById('auth-container'),
+  recipesContainer: document.getElementById('recipesContainer'),
+  favoritesContainer: document.getElementById('favoritesContainer'),
+  loginModal: document.getElementById('login-modal'),
+  registerModal: document.getElementById('register-modal'),
+  mobileFiltersToggle: document.getElementById('mobile-filters-toggle'),
+  filtersSidebar: document.getElementById('filters-sidebar'),
+  navLinks: document.querySelectorAll('.nav-link'),
+  mainFooter: document.getElementById('main-footer'),
+  mobileNav: document.querySelector('.mobile-nav'),
+  mobileMenuToggle: document.getElementById('mobile-menu-toggle'),
+  mobileAuthLinks: document.getElementById('mobile-auth-links'),
+  loginForm: document.getElementById('login-form'),
+  registerForm: document.getElementById('register-form'),
+  promptLoginBtn: document.getElementById('prompt-login-btn'),
+  promptRegisterBtn: document.getElementById('prompt-register-btn'),
+};
 
-// NEW: Mobile Nav elements
-const mobileNav = document.querySelector('.mobile-nav'); //
-const mobileMenuToggle = document.getElementById('mobile-menu-toggle'); //
-const mobileAuthLinks = document.getElementById('mobile-auth-links'); //
+// --- UTILITY FUNCTIONS ---
 
-// --- HELPER FUNCTIONS ---
+/**
+ * Extracts unique values for a given key from a list of recipes.
+ * Handles both single values and array values for a key.
+ * @param {Array} recipes - The array of recipe objects.
+ * @param {string} key - The property key to extract unique values from.
+ * @returns {Array} An array of unique, sorted values, prefixed with "Any".
+ */
 const getUniqueValues = (recipes, key) => {
   const allValues = new Set(recipes.flatMap(recipe => {
     if (Array.isArray(recipe[key])) {
       return recipe[key];
     }
     return [recipe[key]];
-  }).filter(Boolean));
+  }).filter(Boolean)); // Filter out null/undefined values
   return ["Any", ...Array.from(allValues).sort()];
 };
 
+// Note: parsePrepTime and mapDifficultyToValue are not currently used in the filtering logic
+// (as filter selectors only use category, temperature, difficulty, caffeineLevel),
+// but they are kept for completeness based on the original code.
+
+/**
+ * Parses a time string (e.g., "5 mins", "12-18 hrs") into total minutes.
+ * @param {string} timeString - The time string to parse.
+ * @returns {number} The total time in minutes, or Infinity if parsing fails.
+ */
 const parsePrepTime = (timeString) => {
   if (!timeString) return Infinity;
   timeString = timeString.toLowerCase();
@@ -989,6 +1016,11 @@ const parsePrepTime = (timeString) => {
   return totalMinutes === 0 ? Infinity : totalMinutes;
 };
 
+/**
+ * Maps a difficulty string to a numerical value.
+ * @param {string} difficulty - The difficulty string (e.g., "Easy", "Medium").
+ * @returns {number} A numerical representation of difficulty, or 4 if not found.
+ */
 const mapDifficultyToValue = (difficulty) => {
   const difficultyMap = {
     "easy": 1,
@@ -996,79 +1028,123 @@ const mapDifficultyToValue = (difficulty) => {
     "hard": 3
   };
   if (typeof difficulty === 'string') {
-    return difficultyMap[difficulty.toLowerCase()] || 4;
+    return difficultyMap[difficulty.toLowerCase()] || 4; // Default to 4 for unknown
   }
-  return 4;
+  return 4; // Default for non-string input
 };
 
-// --- MODAL & UI LOGIC ---
-function openModal(modal) {
-  modal.classList.remove('hidden');
-  mainFooter.style.display = 'none';
+// --- MODAL & UI MANAGEMENT FUNCTIONS ---
+
+/**
+ * Opens a specified modal by removing the 'hidden' class.
+ * Adjusts footer visibility.
+ * @param {HTMLElement} modalElement - The modal DOM element to open.
+ */
+function openModal(modalElement) {
+  modalElement.classList.remove('hidden');
+  domElements.mainFooter.style.display = 'none'; // Hide footer when a modal is open
 }
 
-function closeModal(modal) {
-  modal.classList.add('hidden');
-  const isAnyModalOpen = !loginModal.classList.contains('hidden') || !registerModal.classList.contains('hidden');
-  if (initialView.style.display === 'none' && !isAnyModalOpen) {
-    mainFooter.style.display = 'block';
+/**
+ * Closes a specified modal by adding the 'hidden' class.
+ * Resets any error messages and adjusts footer visibility.
+ * @param {HTMLElement} modalElement - The modal DOM element to close.
+ */
+function closeModal(modalElement) {
+  modalElement.classList.add('hidden');
+  // Check if any other modal is still open
+  const isAnyModalOpen = !domElements.loginModal.classList.contains('hidden') || !domElements.registerModal.classList.contains('hidden');
+  // Only show footer if initial view is hidden and no modals are open
+  if (domElements.initialView.style.display === 'none' && !isAnyModalOpen) {
+    domElements.mainFooter.style.display = 'block';
   } else {
-    mainFooter.style.display = 'none';
+    domElements.mainFooter.style.display = 'none';
   }
-  const errorElement = modal.querySelector('.modal-error');
-  if (errorElement) errorElement.textContent = '';
+  const errorElement = modalElement.querySelector('.modal-error');
+  if (errorElement) errorElement.textContent = ''; // Clear error message
 }
 
+/**
+ * Sets up event listeners for opening and closing login/register modals.
+ */
 function setupModalTriggers() {
-  document.getElementById('prompt-login-btn').addEventListener('click', () => openModal(loginModal));
-  document.getElementById('prompt-register-btn').addEventListener('click', () => openModal(registerModal));
-  loginModal.querySelector('#login-close').addEventListener('click', () => closeModal(loginModal));
-  registerModal.querySelector('#register-close').addEventListener('click', () => closeModal(registerModal));
-  loginModal.querySelector('#login-switch-to-register').addEventListener('click', (e) => { e.preventDefault(); closeModal(loginModal); openModal(registerModal); });
-  registerModal.querySelector('#register-switch-to-login').addEventListener('click', (e) => { e.preventDefault(); closeModal(registerModal); openModal(loginModal); });
+  domElements.promptLoginBtn.addEventListener('click', () => openModal(domElements.loginModal));
+  domElements.promptRegisterBtn.addEventListener('click', () => openModal(domElements.registerModal));
+
+  domElements.loginModal.querySelector('#login-close').addEventListener('click', () => closeModal(domElements.loginModal));
+  domElements.registerModal.querySelector('#register-close').addEventListener('click', () => closeModal(domElements.registerModal));
+
+  // Switch between login and register forms
+  domElements.loginModal.querySelector('#login-switch-to-register').addEventListener('click', (e) => {
+    e.preventDefault();
+    closeModal(domElements.loginModal);
+    openModal(domElements.registerModal);
+  });
+  domElements.registerModal.querySelector('#register-switch-to-login').addEventListener('click', (e) => {
+    e.preventDefault();
+    closeModal(domElements.registerModal);
+    openModal(domElements.loginModal);
+  });
 }
 
+/**
+ * Updates the UI based on the user's authentication state.
+ * Shows/hides initial view, content, and modifies auth buttons.
+ * @param {Object|null} user - The Firebase user object or null if logged out.
+ */
 function updateUIForAuthState(user) {
   if (user) {
-    initialView.style.display = 'none';
-    pagesContainer.classList.remove('hidden');
-    authContainer.innerHTML = `<span class="user-text">${user.email.split('@')[0]}</span><button id="logout-btn" class="auth-button logout-button">Logout</button>`;
+    // User is logged in
+    domElements.initialView.style.display = 'none';
+    domElements.pagesContainer.classList.remove('hidden');
+    domElements.authContainer.innerHTML = `<span class="user-text">${user.email.split('@')[0]}</span><button id="logout-btn" class="auth-button logout-button">Logout</button>`;
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
-    
-    // Update mobile navigation auth links
-    mobileAuthLinks.innerHTML = `<button id="mobile-logout-btn" class="auth-button logout-button">Logout</button>`; //
-    document.getElementById('mobile-logout-btn').addEventListener('click', handleLogout); //
 
-    listenToFavorites(user.uid);
-    showPage(state.currentPage);
-    mainFooter.style.display = 'block';
+    // Update mobile navigation auth links
+    domElements.mobileAuthLinks.innerHTML = `<button id="mobile-logout-btn" class="auth-button logout-button">Logout</button>`;
+    document.getElementById('mobile-logout-btn').addEventListener('click', handleLogout);
+
+    listenToUserFavorites(user.uid); // Start listening to favorites for the logged-in user
+    showPage(appState.currentPage); // Show the last active page or default
+    domElements.mainFooter.style.display = 'block'; // Show footer when logged in
   } else {
-    initialView.style.display = 'flex';
-    pagesContainer.classList.add('hidden');
-    authContainer.innerHTML = `<button id="login-nav-btn" class="auth-button login-button">Login</button><button id="register-nav-btn" class="auth-button register-button">Register</button>`;
-    document.getElementById('login-nav-btn').addEventListener('click', () => openModal(loginModal));
-    document.getElementById('register-nav-btn').addEventListener('click', () => openModal(registerModal));
+    // User is logged out
+    domElements.initialView.style.display = 'flex';
+    domElements.pagesContainer.classList.add('hidden');
+    domElements.authContainer.innerHTML = `<button id="login-nav-btn" class="auth-button login-button">Login</button><button id="register-nav-btn" class="auth-button register-button">Register</button>`;
+    document.getElementById('login-nav-btn').addEventListener('click', () => openModal(domElements.loginModal));
+    document.getElementById('register-nav-btn').addEventListener('click', () => openModal(domElements.registerModal));
 
     // Update mobile navigation auth links
-    mobileAuthLinks.innerHTML = `
+    domElements.mobileAuthLinks.innerHTML = `
       <button id="mobile-login-btn" class="auth-button login-button">Login</button>
       <button id="mobile-register-btn" class="auth-button register-button">Register</button>
-    `; //
-    document.getElementById('mobile-login-btn').addEventListener('click', () => { closeModal(mobileNav); openModal(loginModal); }); // Close mobile nav when opening modal
-    document.getElementById('mobile-register-btn').addEventListener('click', () => { closeModal(mobileNav); openModal(registerModal); }); // Close mobile nav when opening modal
+    `;
+    // Close mobile nav when opening a modal from it
+    document.getElementById('mobile-login-btn').addEventListener('click', () => { domElements.mobileNav.classList.add('hidden'); openModal(domElements.loginModal); });
+    document.getElementById('mobile-register-btn').addEventListener('click', () => { domElements.mobileNav.classList.add('hidden'); openModal(domElements.registerModal); });
 
-
-    if (state.unsubscribeFavorites) { state.unsubscribeFavorites(); state.unsubscribeFavorites = null; }
-    state.userFavorites.clear();
-    showPage('home');
-    mainFooter.style.display = 'none';
+    // Unsubscribe from favorites listener if previously active
+    if (appState.unsubscribeFavorites) {
+      appState.unsubscribeFavorites();
+      appState.unsubscribeFavorites = null;
+    }
+    appState.userFavorites.clear(); // Clear local favorites
+    showPage('home'); // Always default to home when logged out
+    domElements.mainFooter.style.display = 'none'; // Hide footer when logged out (initial view)
   }
-  lucide.createIcons();
+  lucide.createIcons(); // Re-render Lucide icons after DOM changes
 }
 
-// --- NAVIGATION & PAGE MANAGEMENT ---
+// --- NAVIGATION & PAGE RENDERING ---
+
+/**
+ * Shows a specific page by adding the 'active' class and hiding others.
+ * Triggers content rendering specific to the page.
+ * @param {string} pageId - The ID of the page to show (e.g., 'home', 'favorites').
+ */
 function showPage(pageId) {
-  state.currentPage = pageId;
+  appState.currentPage = pageId;
   document.querySelectorAll('.page-content').forEach(page => {
     if (page.id === `page-${pageId}`) {
       page.classList.add('active');
@@ -1077,121 +1153,146 @@ function showPage(pageId) {
     }
   });
 
-  document.querySelectorAll('.nav-link').forEach(link => {
+  // Update active state for main navigation links
+  domElements.navLinks.forEach(link => {
     link.classList.toggle('active', link.dataset.page === pageId);
   });
 
+  // Render content based on the active page
   if (pageId === 'favorites') {
     renderFavoritesPage();
   } else if (pageId === 'home') {
-    applyFiltersAndRender();
+    applyFiltersAndRenderRecipes();
   }
+  // No specific rendering needed for 'about' as its content is static HTML
 }
 
+/**
+ * Sets up event listeners for the main navigation links.
+ * Handles access control for logged-in features.
+ */
 function setupNavigation() {
-  document.querySelectorAll('.nav-link').forEach(link => {
+  domElements.navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const pageId = e.target.closest('.nav-link').dataset.page;
-      if (auth.currentUser) {
-        showPage(pageId);
-      } else if (pageId === 'about' || pageId === 'home') {
+      // Allow 'about' and 'home' pages to be viewed without login, others require auth.
+      if (auth.currentUser || pageId === 'about' || pageId === 'home') {
         showPage(pageId);
       } else {
-        openModal(loginModal);
+        openModal(domElements.loginModal); // Prompt login for protected pages
       }
-      mobileNav.classList.add('hidden'); // Close mobile nav after clicking a link
+      domElements.mobileNav.classList.add('hidden'); // Close mobile nav after selection
     });
   });
 }
 
+/**
+ * Displays the detailed view of a specific recipe.
+ * @param {number} recipeId - The ID of the recipe to display.
+ */
 function showRecipeDetail(recipeId) {
-  const recipe = state.recipes.find(r => r.id === recipeId);
-  const container = document.getElementById('page-recipe-detail');
+  const recipe = appState.recipes.find(r => r.id === recipeId);
+  const detailPageContainer = document.getElementById('page-recipe-detail');
 
   if (recipe) {
+    // Process instructions: split by '.', trim, and filter out empty strings
     const instructionsArray = Array.isArray(recipe.instructions)
       ? recipe.instructions
       : typeof recipe.instructions === 'string'
         ? recipe.instructions.split('.').map(s => s.trim()).filter(s => s.length > 0)
         : [];
 
-    container.innerHTML = `
-            <div class="recipe-detail-page">
-                <div class="recipe-page-grid">
-                    <div class="recipe-image-column">
-                        <img src="${recipe.image}" alt="${recipe.name}" class="recipe-image-detail" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e0e7ff/4f46e5?text=Image+Not+Found';">
-                    </div>
+    detailPageContainer.innerHTML = `
+      <div class="recipe-detail-page">
+        <div class="recipe-page-grid">
+          <div class="recipe-image-column">
+            <img src="${recipe.image}" alt="${recipe.name}" class="recipe-image-detail" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e0e7ff/4f46e5?text=Image+Not+Found';">
+          </div>
 
-                    <div class="recipe-text-column">
-                        <button id="back-to-home-btn" class="back-button">
-                            <i data-lucide="arrow-left"></i> Back to all drinks
-                        </button>
-                        <h1 class="recipe-name">${recipe.name}</h1>
+          <div class="recipe-text-column">
+            <button id="back-to-home-btn" class="back-button">
+              <i data-lucide="arrow-left"></i> Back to all drinks
+            </button>
+            <h1 class="recipe-name">${recipe.name}</h1>
 
-                        <div class="recipe-info-grid">
-                            <div class="recipe-details-column">
-                                <h3 class="recipe-section-title">Details</h3>
-                                <ul class="details-list">
-                                    <li><strong>Difficulty:</strong> ${recipe.difficulty}</li>
-                                    <li><strong>Prep Time:</strong> ${recipe.prepTime}</li>
-                                    <li><strong>Caffeine:</strong> ${recipe.caffeineLevel}</li>
-                                    <li><strong>Temp:</strong> ${recipe.temperature}</li>
-                                </ul>
-                            </div>
-                            <div class="recipe-ingredients-column">
-                                <h3 class="recipe-section-title">Ingredients</h3>
-                                <ul class="ingredients-list">
-                                    ${(recipe.ingredients || []).map(ing => `<li>${ing}</li>`).join('')}
-                                </ul>
-                            </div>
-                            <div class="recipe-instructions-column">
-                                <h3 class="recipe-section-title">Instructions</h3>
-                                <ol class="instructions-list">
-                                    ${instructionsArray.map(step => `<li>${step}.</li>`).join('')}
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="recipe-info-grid">
+              <div class="recipe-details-column">
+                <h3 class="recipe-section-title">Details</h3>
+                <ul class="details-list">
+                  <li><strong>Difficulty:</strong> ${recipe.difficulty}</li>
+                  <li><strong>Prep Time:</strong> ${recipe.prepTime}</li>
+                  <li><strong>Caffeine:</strong> ${recipe.caffeineLevel}</li>
+                  <li><strong>Temp:</strong> ${recipe.temperature}</li>
+                </ul>
+              </div>
+              <div class="recipe-ingredients-column">
+                <h3 class="recipe-section-title">Ingredients</h3>
+                <ul class="ingredients-list">
+                  ${(recipe.ingredients || []).map(ing => `<li>${ing}</li>`).join('')}
+                </ul>
+              </div>
+              <div class="recipe-instructions-column">
+                <h3 class="recipe-section-title">Instructions</h3>
+                <ol class="instructions-list">
+                  ${instructionsArray.map(step => `<li>${step}.</li>`).join('')}
+                </ol>
+              </div>
             </div>
-        `;
+          </div>
+        </div>
+      </div>
+    `;
     document.getElementById('back-to-home-btn').addEventListener('click', () => showPage('home'));
     showPage('recipe-detail');
   } else {
-    container.innerHTML = `<h1>Recipe not found.</h1>`;
+    detailPageContainer.innerHTML = `<h1>Recipe not found.</h1>`;
     showPage('recipe-detail');
   }
-  lucide.createIcons();
+  lucide.createIcons(); // Re-render Lucide icons for the new content
 }
 
-// --- FIREBASE AUTH HANDLERS ---
-onAuthStateChanged(auth, user => { updateUIForAuthState(user); });
+// --- FIREBASE AUTHENTICATION HANDLERS ---
 
-document.getElementById('login-form').addEventListener('submit', async (e) => {
+// Listener for Firebase authentication state changes
+onAuthStateChanged(auth, user => {
+  updateUIForAuthState(user);
+});
+
+/**
+ * Handles user login form submission.
+ * Sets persistence and attempts to sign in the user.
+ */
+domElements.loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = e.target.elements['login-email'].value;
   const password = e.target.elements['login-password'].value;
   const rememberMe = e.target.elements['login-remember-me'].checked;
   const errorEl = document.getElementById('login-error');
-  errorEl.textContent = '';
+  errorEl.textContent = ''; // Clear previous errors
 
   try {
+    // Set authentication persistence based on 'Remember me' checkbox
     await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
     await signInWithEmailAndPassword(auth, email, password);
-    closeModal(loginModal);
+    closeModal(domElements.loginModal); // Close modal on successful login
   } catch (error) {
     errorEl.textContent = "Failed to login. Please check credentials.";
+    console.error("Login Error:", error.code, error.message);
   }
 });
 
-document.getElementById('register-form').addEventListener('submit', async (e) => {
+/**
+ * Handles user registration form submission.
+ * Validates passwords and attempts to create a new user.
+ */
+domElements.registerForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = e.target.elements['register-email'].value;
   const password = e.target.elements['register-password'].value;
   const confirmPassword = e.target.elements['register-confirm-password'].value;
   const errorEl = document.getElementById('register-error');
-  errorEl.textContent = '';
+  errorEl.textContent = ''; // Clear previous errors
 
   if (password !== confirmPassword) {
     errorEl.textContent = "Passwords do not match.";
@@ -1200,12 +1301,16 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
   try {
     await createUserWithEmailAndPassword(auth, email, password);
-    closeModal(registerModal);
+    closeModal(domElements.registerModal); // Close modal on successful registration
   } catch (error) {
     errorEl.textContent = "Failed to register. Password must be 6+ chars and email valid.";
+    console.error("Registration Error:", error.code, error.message);
   }
 });
 
+/**
+ * Handles user logout.
+ */
 async function handleLogout() {
   try {
     await signOut(auth);
@@ -1214,42 +1319,86 @@ async function handleLogout() {
   }
 }
 
-// --- FIRESTORE FAVORITES LOGIC ---
-function listenToFavorites(userId) {
+// --- FIRESTORE FAVORITES MANAGEMENT ---
+
+/**
+ * Listens for real-time updates to the user's favorite recipes in Firestore.
+ * Updates the `appState.userFavorites` and refreshes the UI.
+ * @param {string} userId - The ID of the current user.
+ */
+function listenToUserFavorites(userId) {
   const userDocRef = doc(db, "users", userId);
-  state.unsubscribeFavorites = onSnapshot(userDocRef, (docSnap) => {
-    state.userFavorites = new Set(docSnap.exists() && docSnap.data().favorites ? docSnap.data().favorites : []);
-    updateFavoriteIcons();
-    if (state.currentPage === 'favorites') { renderFavoritesPage(); }
+  // If there's an existing listener, unsubscribe first to prevent memory leaks
+  if (appState.unsubscribeFavorites) {
+    appState.unsubscribeFavorites();
+  }
+  appState.unsubscribeFavorites = onSnapshot(userDocRef, (docSnap) => {
+    // Update appState.userFavorites with data from Firestore, or an empty set if no data
+    appState.userFavorites = new Set(docSnap.exists() && docSnap.data().favorites ? docSnap.data().favorites : []);
+    updateFavoriteIcons(); // Update heart icons on all recipe cards
+    if (appState.currentPage === 'favorites') {
+      renderFavoritesPage();
+    }
+  }, (error) => {
+    console.error("Error listening to favorites: ", error);
   });
 }
+
+/**
+ * Toggles a recipe's favorite status for the current user.
+ * Updates the user's document in Firestore.
+ * @param {number} recipeId - The ID of the recipe to toggle.
+ */
 async function toggleFavorite(recipeId) {
   const user = auth.currentUser;
-  if (!user) { openModal(loginModal); return; }
-  const newFavorites = new Set(state.userFavorites);
-  newFavorites.has(recipeId) ? newFavorites.delete(recipeId) : newFavorites.add(recipeId);
-  try { await setDoc(doc(db, "users", user.uid), { favorites: Array.from(newFavorites) }, { merge: true }); }
-  catch (error) { console.error("Error updating favorites: ", error); }
+  if (!user) {
+    openModal(domElements.loginModal); // Prompt login if not authenticated
+    return;
+  }
+
+  const newFavorites = new Set(appState.userFavorites); // Create a mutable copy
+  if (newFavorites.has(recipeId)) {
+    newFavorites.delete(recipeId);
+  } else {
+    newFavorites.add(recipeId);
+  }
+
+  try {
+    // Update Firestore document with the new favorites array
+    await setDoc(doc(db, "users", user.uid), {
+      favorites: Array.from(newFavorites)
+    }, {
+      merge: true
+    });
+    // The onSnapshot listener will automatically update appState.userFavorites and refresh UI
+  } catch (error) {
+    console.error("Error updating favorites: ", error);
+  }
 }
 
-// --- FILTERING & RENDERING LOGIC ---
+// --- FILTERING & RECIPE RENDERING LOGIC ---
+
+/**
+ * Dynamically creates the filter selector elements in the sidebar.
+ * This function also sets up the close button for the mobile sidebar.
+ */
 function createFilterSelectors() {
   const preferenceOptions = {
-    category: getUniqueValues(state.recipes, 'category'),
-    temperature: getUniqueValues(state.recipes, 'temperature'),
-    difficulty: ["Any", "Easy", "Medium", "Hard"],
-    caffeineLevel: getUniqueValues(state.recipes, 'caffeineLevel'),
+    category: getUniqueValues(appState.recipes, 'category'),
+    temperature: getUniqueValues(appState.recipes, 'temperature'),
+    difficulty: ["Any", "Easy", "Medium", "Hard"], // Static options for difficulty
+    caffeineLevel: getUniqueValues(appState.recipes, 'caffeineLevel'),
   };
 
-  // Build the entire innerHTML for the filtersSidebar, including the close button
-  filtersSidebar.innerHTML = `
+  // Construct the full HTML for the filters sidebar including the close button
+  domElements.filtersSidebar.innerHTML = `
     <button class="filters-close-button" aria-label="Hide Filters">
       <i data-lucide="x"></i>
     </button>
     <h2 class="filters-title">Find Your Drink</h2>
     <p class="filters-subtitle">Adjust preferences to discover recipes.</p>
     <div class="search-container">
-      <input type="text" id="searchInput" placeholder="Search name, ingredient..." class="search-input" />
+      <input type="text" id="searchInput" placeholder="Search name, ingredient..." class="search-input" value="${appState.searchTerm}"/>
       <i data-lucide="search" class="search-icon h-5 w-5"></i>
     </div>
     <div id="filterSelectorsContent"></div>
@@ -1258,213 +1407,300 @@ function createFilterSelectors() {
     </button>
   `;
 
-  // Get the newly created container for filter selectors (must be done after innerHTML is set)
+  // Get the dynamically created content container for filter selectors
   const filterSelectorsContent = document.getElementById('filterSelectorsContent');
 
+  // Populate filter dropdowns
   filterSelectorsContent.innerHTML = Object.entries(preferenceOptions).map(([key, options]) => `
-        <div class="filter-selector">
-            <label class="filter-label">${key.charAt(0).toUpperCase() + key.slice(1)}</label>
-            <div class="select-container">
-                <select data-filter-key="${key}" class="filter-select">
-                    ${options.map(opt => `<option value="${opt.toLowerCase()}">${opt}</option>`).join('')}
-                </select>
-                <i data-lucide="chevron-down" class="select-arrow h-5 w-5"></i>
-            </div>
-        </div>
-    `).join('');
+    <div class="filter-selector">
+      <label class="filter-label">${key.charAt(0).toUpperCase() + key.slice(1)}</label>
+      <div class="select-container">
+        <select data-filter-key="${key}" class="filter-select">
+          ${options.map(opt => `<option value="${opt.toLowerCase()}" ${appState.preferences[key] === opt.toLowerCase() ? 'selected' : ''}>${opt}</option>`).join('')}
+        </select>
+        <i data-lucide="chevron-down" class="select-arrow h-5 w-5"></i>
+      </div>
+    </div>
+  `).join('');
 
-  // Attach event listener to the new close button after it's added to the DOM
+  // Attach event listener to the new close button for the sidebar
   document.querySelector('.filters-close-button').addEventListener('click', () => {
-    filtersSidebar.classList.remove('active');
-    // Update the mobile toggle button text and icon when filters are hidden
-    if (mobileFiltersToggle) {
-        const toggleIcon = mobileFiltersToggle.querySelector('i');
-        const toggleTextSpan = mobileFiltersToggle.querySelector('span');
-        if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'filter');
-        if (toggleTextSpan) toggleTextSpan.textContent = 'Show Filters';
-        lucide.createIcons(); // Re-render icon
-    }
+    domElements.filtersSidebar.classList.remove('active');
+    // Update mobile toggle button icon and text
+    updateMobileFilterToggleButton(false);
   });
 
-  // Re-attach event listeners for filter selects as they are dynamically created
+  // Re-attach event listeners for dynamically created filter selects
   document.querySelectorAll('.filter-select').forEach(select => {
     select.addEventListener('change', (event) => {
       const key = event.target.dataset.filterKey;
       const value = event.target.value;
       if (value === 'all' || value === 'any') {
-        delete state.preferences[key];
+        delete appState.preferences[key]; // Remove filter if "Any" is selected
       } else {
-        state.preferences[key] = value;
+        appState.preferences[key] = value;
       }
-      applyFiltersAndRender();
+      applyFiltersAndRenderRecipes(); // Re-apply filters and render recipes
     });
   });
 
-  lucide.createIcons();
+  lucide.createIcons(); // Re-render Lucide icons for new elements
 }
 
-function applyFiltersAndRender() {
-  let recipesToFilter = [...state.recipes];
+/**
+ * Applies current filters (search term and preferences) to the recipes.
+ * Updates `appState.filteredRecipes` and then renders them.
+ */
+function applyFiltersAndRenderRecipes() {
+  let recipesToFilter = [...appState.recipes]; // Start with all recipes
 
-  // Re-select searchInput here because its parent's innerHTML is rebuilt by createFilterSelectors
+  // Ensure searchInput reference is fresh as it might be recreated by createFilterSelectors
   const currentSearchInput = document.getElementById('searchInput');
   if (currentSearchInput) {
-      // Update state.searchTerm from the current input value
-      state.searchTerm = currentSearchInput.value.toLowerCase();
+    appState.searchTerm = currentSearchInput.value.toLowerCase();
   }
 
-  // Apply search term filter
-  if (state.searchTerm) {
-    recipesToFilter = recipesToFilter.filter(r =>
-      r.name.toLowerCase().includes(state.searchTerm) ||
-      (r.ingredients && r.ingredients.some(i => i.toLowerCase().includes(state.searchTerm)))
+  // 1. Apply search term filter
+  if (appState.searchTerm) {
+    recipesToFilter = recipesToFilter.filter(recipe =>
+      recipe.name.toLowerCase().includes(appState.searchTerm) ||
+      (recipe.ingredients && recipe.ingredients.some(ingredient => ingredient.toLowerCase().includes(appState.searchTerm))) ||
+      (recipe.tags && recipe.tags.some(tag => tag.toLowerCase().includes(appState.searchTerm))) ||
+      (recipe.flavorNotes && recipe.flavorNotes.some(note => note.toLowerCase().includes(appState.searchTerm)))
     );
   }
 
-  // Apply preference filters
-  Object.entries(state.preferences).forEach(([key, value]) => {
+  // 2. Apply preference filters
+  Object.entries(appState.preferences).forEach(([key, value]) => {
     if (value && value !== 'any') {
-      recipesToFilter = recipesToFilter.filter(r =>
-        String(r[key]).toLowerCase() === value
-      );
+      recipesToFilter = recipesToFilter.filter(recipe => {
+        // Handle array properties (like 'tags' or 'flavorNotes' if they were filters)
+        if (Array.isArray(recipe[key])) {
+          return recipe[key].some(item => String(item).toLowerCase() === value);
+        }
+        // Handle single-value properties
+        return String(recipe[key]).toLowerCase() === value;
+      });
     }
   });
 
-  state.filteredRecipes = recipesToFilter;
-  renderRecipes();
+  appState.filteredRecipes = recipesToFilter;
+  renderRecipes(); // Render the filtered recipes
 }
 
+/**
+ * Renders the filtered recipes into their respective categories in the main content area.
+ * Displays a "No Results" message if no recipes match.
+ */
 function renderRecipes() {
-  recipesContainer.innerHTML = '';
-  const groupedRecipes = state.filteredRecipes.reduce((acc, recipe) => { const type = recipe.type || 'Other'; if (!acc[type]) acc[type] = []; acc[type].push(recipe); return acc; }, {});
+  domElements.recipesContainer.innerHTML = ''; // Clear previous content
+
+  // Group recipes by 'type' (e.g., Coffee, Tea, Other)
+  const groupedRecipes = appState.filteredRecipes.reduce((acc, recipe) => {
+    const type = recipe.type || 'Other'; // Default to 'Other' if type is missing
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(recipe);
+    return acc;
+  }, {});
+
+  // Define a preferred order for categories
   const categoryOrder = ['Coffee', 'Tea', 'Other'];
+
+  // Render each category
   categoryOrder.forEach(categoryName => {
     if (groupedRecipes[categoryName] && groupedRecipes[categoryName].length > 0) {
-      const categoryHtml = ` <div class="drink-category"> <h2 class="drink-category-title">${categoryName}</h2> <div class="horizontal-scroll-container"> ${groupedRecipes[categoryName].map(createRecipeCardHTML).join('')} </div> </div>`;
-      recipesContainer.insertAdjacentHTML('beforeend', categoryHtml);
+      const categoryHtml = `
+        <div class="drink-category">
+          <h2 class="drink-category-title">${categoryName}</h2>
+          <div class="horizontal-scroll-container">
+            ${groupedRecipes[categoryName].map(createRecipeCardHTML).join('')}
+          </div>
+        </div>
+      `;
+      domElements.recipesContainer.insertAdjacentHTML('beforeend', categoryHtml);
     }
   });
-  if (state.filteredRecipes.length === 0) { recipesContainer.innerHTML = `<div class="no-results"><i data-lucide="search-x" class="no-results-icon"></i><h3>No Drinks Found</h3><p>Try adjusting filters.</p></div>`; }
-  lucide.createIcons();
-}
 
-function renderFavoritesPage() {
-  const favoriteRecipes = state.recipes.filter(recipe => state.userFavorites.has(recipe.id));
-  favoritesContainer.innerHTML = '';
-  if (favoriteRecipes.length === 0) {
-    favoritesContainer.innerHTML = `<div class="no-results"><i data-lucide="heart-off" class="no-results-icon"></i><h3>No Favorites Yet</h3><p>Click the heart on a drink to save it here.</p></div>`;
-  } else {
-    favoritesContainer.classList.add('recipes-grid-container'); 
-    favoritesContainer.innerHTML = favoriteRecipes.map(createRecipeCardHTML).join('');
+  // Display 'No Results' if no recipes are found after filtering
+  if (appState.filteredRecipes.length === 0) {
+    domElements.recipesContainer.innerHTML = `
+      <div class="no-results">
+        <i data-lucide="search-x" class="no-results-icon"></i>
+        <h3>No Drinks Found</h3>
+        <p>Try adjusting filters.</p>
+      </div>
+    `;
   }
-  lucide.createIcons();
+  lucide.createIcons(); // Re-render Lucide icons for new cards/elements
 }
 
+/**
+ * Renders the user's favorite recipes on the favorites page.
+ * Displays a "No Favorites" message if the list is empty.
+ */
+function renderFavoritesPage() {
+  const favoriteRecipes = appState.recipes.filter(recipe => appState.userFavorites.has(recipe.id));
+  domElements.favoritesContainer.innerHTML = ''; // Clear previous content
+
+  if (favoriteRecipes.length === 0) {
+    domElements.favoritesContainer.innerHTML = `
+      <div class="no-results">
+        <i data-lucide="heart-off" class="no-results-icon"></i>
+        <h3>No Favorites Yet</h3>
+        <p>Click the heart on a drink to save it here.</p>
+      </div>
+    `;
+    domElements.favoritesContainer.classList.remove('recipes-grid-container'); // Remove grid layout if empty
+  } else {
+    domElements.favoritesContainer.classList.add('recipes-grid-container'); // Ensure grid layout is active
+    domElements.favoritesContainer.innerHTML = favoriteRecipes.map(createRecipeCardHTML).join('');
+  }
+  lucide.createIcons(); // Re-render Lucide icons
+}
+
+/**
+ * Generates the HTML string for a single recipe card.
+ * @param {Object} recipe - The recipe object.
+ * @returns {string} The HTML string for the recipe card.
+ */
 function createRecipeCardHTML(recipe) {
-  const isFavorite = state.userFavorites.has(recipe.id);
+  const isFavorite = appState.userFavorites.has(recipe.id);
   return `
     <div class="recipe-card-wrapper">
-        <div class="recipe-card animate-fadeIn" data-recipe-id="${recipe.id}">
-            <div class="recipe-image-container">
-                <img src="${recipe.image}" alt="${recipe.name}" class="recipe-image" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e0e7ff/4f46e5?text=Image+Not+Found';">
-            </div>
-            <div class="recipe-card-content">
-                <h3 class="recipe-card-title">${recipe.name}</h3>
-                <p class="recipe-card-category">${recipe.category}</p>
-            </div>
+      <div class="recipe-card animate-fadeIn" data-recipe-id="${recipe.id}">
+        <div class="recipe-image-container">
+          <img src="${recipe.image}" alt="${recipe.name}" class="recipe-image" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e0e7ff/4f46e5?text=Image+Not+Found';">
         </div>
-        <button class="favorite-button ${isFavorite ? 'active' : ''}" data-recipe-id="${recipe.id}">
-            <i data-lucide="heart" class="h-5 w-5"></i>
-        </button>
+        <div class="recipe-card-content">
+          <h3 class="recipe-card-title">${recipe.name}</h3>
+          <p class="recipe-card-category">${recipe.category}</p>
+        </div>
+      </div>
+      <button class="favorite-button ${isFavorite ? 'active' : ''}" data-recipe-id="${recipe.id}">
+        <i data-lucide="heart" class="h-5 w-5"></i>
+      </button>
     </div>`;
 }
-function updateFavoriteIcons() { document.querySelectorAll('.favorite-button').forEach(button => { const recipeId = parseInt(button.dataset.recipeId); button.classList.toggle('active', state.userFavorites.has(recipeId)); }); }
+
+/**
+ * Updates the visual state of favorite icons on all displayed recipe cards.
+ */
+function updateFavoriteIcons() {
+  document.querySelectorAll('.favorite-button').forEach(button => {
+    const recipeId = parseInt(button.dataset.recipeId);
+    button.classList.toggle('active', appState.userFavorites.has(recipeId));
+  });
+  // Note: Lucide icons handle their own coloring based on CSS fill/stroke properties
+}
 
 
-// --- EVENT LISTENERS ---
-function attachEventListeners() {
-  // These elements are recreated when filtersSidebar.innerHTML is set, so re-select them here.
-  const currentSearchInput = document.getElementById('searchInput');
-  const currentResetFiltersBtn = document.getElementById('resetFilters');
+// --- EVENT LISTENER ATTACHMENT ---
 
-  if (currentSearchInput) { 
-      currentSearchInput.addEventListener('input', (e) => { state.searchTerm = e.target.value.toLowerCase(); applyFiltersAndRender(); });
+/**
+ * Updates the text and icon of the mobile filter toggle button.
+ * @param {boolean} isActive - True if the filters sidebar is active (open), false otherwise.
+ */
+function updateMobileFilterToggleButton(isActive) {
+  const toggleIcon = domElements.mobileFiltersToggle.querySelector('i');
+  const toggleTextSpan = domElements.mobileFiltersToggle.querySelector('span');
+
+  if (toggleIcon && toggleTextSpan) {
+    if (isActive) {
+      toggleTextSpan.textContent = 'Hide Filters';
+      toggleIcon.setAttribute('data-lucide', 'x');
+    } else {
+      toggleTextSpan.textContent = 'Show Filters';
+      toggleIcon.setAttribute('data-lucide', 'filter');
+    }
+    lucide.createIcons(); // Re-render icon
   }
-  
-  if (currentResetFiltersBtn) { 
-      currentResetFiltersBtn.addEventListener('click', () => { 
-          state.preferences = {}; 
-          state.searchTerm = ""; 
-          // Ensure search input value is cleared
-          if (document.getElementById('searchInput')) {
-            document.getElementById('searchInput').value = ""; 
-          }
-          document.querySelectorAll('.filter-select').forEach(s => s.value = 'any'); 
-          applyFiltersAndRender();
-      });
+}
+
+/**
+ * Attaches event listeners for filter controls (search input, reset button, mobile toggle).
+ * These listeners need to be re-attached if the filters sidebar HTML is rebuilt.
+ */
+function attachFilterEventListeners() {
+  const currentSearchInput = document.getElementById('searchInput'); // Re-select after HTML refresh
+  const currentResetFiltersBtn = document.getElementById('resetFilters'); // Re-select after HTML refresh
+
+  if (currentSearchInput) {
+    currentSearchInput.addEventListener('input', (e) => {
+      appState.searchTerm = e.target.value.toLowerCase();
+      applyFiltersAndRenderRecipes();
+    });
   }
 
-  if (mobileFiltersToggle && filtersSidebar) {
-    mobileFiltersToggle.addEventListener('click', () => { 
-      filtersSidebar.classList.toggle('active'); 
-      const toggleIcon = mobileFiltersToggle.querySelector('i');
-      const toggleTextSpan = mobileFiltersToggle.querySelector('span');
-      
-      if (toggleIcon && toggleTextSpan) { 
-          if (filtersSidebar.classList.contains('active')) {
-            toggleTextSpan.textContent = 'Hide Filters';
-            toggleIcon.setAttribute('data-lucide', 'x'); 
-          } else {
-            toggleTextSpan.textContent = 'Show Filters';
-            toggleIcon.setAttribute('data-lucide', 'filter');
-          }
-          lucide.createIcons(); 
+  if (currentResetFiltersBtn) {
+    currentResetFiltersBtn.addEventListener('click', () => {
+      appState.preferences = {}; // Clear all selected filters
+      appState.searchTerm = ""; // Clear search term
+      // Reset search input and all filter selects to "Any"
+      if (document.getElementById('searchInput')) {
+        document.getElementById('searchInput').value = "";
       }
+      document.querySelectorAll('.filter-select').forEach(s => s.value = 'any');
+      applyFiltersAndRenderRecipes();
+    });
+  }
+
+  // Mobile filters sidebar toggle
+  if (domElements.mobileFiltersToggle && domElements.filtersSidebar) {
+    domElements.mobileFiltersToggle.addEventListener('click', () => {
+      domElements.filtersSidebar.classList.toggle('active');
+      updateMobileFilterToggleButton(domElements.filtersSidebar.classList.contains('active'));
     });
   }
 }
 
-function attachCardEventListeners() {
-  const mainContentArea = document.getElementById('content-wrapper');
+/**
+ * Attaches event listeners to the main content area for recipe card clicks
+ * and favorite button clicks using event delegation.
+ */
+function attachRecipeCardEventListeners() {
+  const mainContentArea = document.getElementById('content-wrapper'); // Use a stable parent element
+
   mainContentArea.addEventListener('click', (e) => {
     const card = e.target.closest('.recipe-card');
     const favButton = e.target.closest('.favorite-button');
 
     if (favButton) {
       const recipeId = parseInt(favButton.dataset.recipeId);
-      toggleFavorite(recipeId);
-      return;
+      toggleFavorite(recipeId); // Handle favorite toggle
+      // No need to manually update button class here, onSnapshot listener handles it
+      return; // Stop further propagation if favorite button was clicked
     }
 
     if (card) {
       const recipeId = parseInt(card.dataset.recipeId);
-      showRecipeDetail(recipeId);
+      showRecipeDetail(recipeId); // Show recipe detail page
     }
   });
 }
 
 // --- INITIALIZATION ---
+
+/**
+ * Initializes the application: sets up UI, event listeners, and initial data display.
+ */
 function init() {
-  lucide.createIcons();
-  document.getElementById('currentYear').textContent = new Date().getFullYear();
-  
+  lucide.createIcons(); // Initialize Lucide icons across the page
+  document.getElementById('currentYear').textContent = new Date().getFullYear(); // Set current year in footer
+
   // Mobile menu toggle
-  mobileMenuToggle.addEventListener('click', () => { //
-    mobileNav.classList.toggle('hidden'); //
+  domElements.mobileMenuToggle.addEventListener('click', () => {
+    domElements.mobileNav.classList.toggle('hidden');
   });
 
-  
+  setupModalTriggers(); // Setup login/register modal interactions
+  setupNavigation(); // Setup main navigation links
+  createFilterSelectors(); // Create filter dropdowns and attach their specific change listeners
+  attachFilterEventListeners(); // Attach event listeners for search and reset filters
+  attachRecipeCardEventListeners(); // Attach delegated event listeners for recipe cards and favorites
 
-  setupModalTriggers();
-  setupNavigation();
-  createFilterSelectors(); 
-  attachEventListeners(); 
-  attachCardEventListeners();
-
-  applyFiltersAndRender(); 
-  updateUIForAuthState(auth.currentUser);
+  applyFiltersAndRenderRecipes(); // Initial render of recipes
+  updateUIForAuthState(auth.currentUser); // Update UI based on initial auth state
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  init();
-});
+// Run the initialization function once the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', init);

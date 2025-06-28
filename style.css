@@ -28,6 +28,8 @@ body {
   background-color: var(--gray-100);
   color: var(--gray-700);
   min-height: 100vh;
+  /* Prevent horizontal scroll issues when filter sidebar slides in */
+  overflow-x: hidden;
 }
 
 .container {
@@ -322,55 +324,104 @@ header {
 /* Home Page Layout */
 .main-content {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Stacked on mobile */
   gap: 1.5rem;
 }
 
 /* Filters Sidebar */
 .filters-sidebar {
-  width: 100%;
-  background-color: var(--white);
+  width: 280px; /* Fixed width for the sliding sidebar */
+  background-color: var(--white); /* Changed to white */
   border-radius: 0.75rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
   padding: 1.5rem;
-  position: fixed;
-  top: 70px;
+  position: fixed; /* Fixed position for overlay effect */
+  top: 70px; /* Below the header */
   left: 0;
-  bottom: 0;
-  z-index: 20;
-  overflow-y: auto;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out;
+  bottom: 0; /* Extends to the bottom */
+  z-index: 20; /* Below mobile nav (z-index 40), above main content */
+  overflow-y: auto; /* Allow scrolling if filters are tall */
+  transform: translateX(-100%); /* Initially hidden off-screen to the left */
+  transition: transform 0.3s ease-in-out; /* Smooth slide transition */
 }
 
 .filters-sidebar.active {
-  transform: translateX(0);
+  transform: translateX(0); /* Slide into view */
 }
 
+/* Overlay for when sidebar is active on mobile */
+.filters-sidebar.active::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white; /* Dark semi-transparent overlay */
+    z-index: -1; /* Behind the sidebar content */
+}
+
+
+/* Toggle button for mobile filters */
+#mobile-filters-toggle {
+    background-color: var(--white);
+    color: var(--indigo-600);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem; /* Space below button on mobile */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid var(--gray-200);
+    width: 100%;
+}
+
+/* New: Close button for filters sidebar on mobile */
+.filters-close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--gray-600);
+  cursor: pointer;
+  display: none; /* Hidden by default, shown on mobile via media query */
+  z-index: 25; /* Above filter content */
+}
+
+@media (max-width: 1023px) { /* Adjust breakpoint as needed for mobile-specific styles */
+  .filters-close-button {
+    display: block; /* Show close button on mobile */
+  }
+}
+
+
+/* Desktop Styles for Home Page */
 @media (min-width: 1024px) {
   .main-content {
-    flex-direction: row;
+    flex-direction: row; /* Side-by-side on desktop */
     gap: 2rem;
     align-items: flex-start;
   }
   .filters-sidebar {
-    position: sticky;
-    width: 280px;
-    flex-shrink: 0;
-    top: 90px;
-    height: calc(100vh - 110px);
-    transform: translateX(0);
+    position: sticky; /* Sticky on desktop */
+    width: 280px; /* Fixed width */
+    flex-shrink: 0; /* Prevents sidebar from shrinking */
+    top: 90px; /* Adjust based on header height */
+    height: calc(100vh - 110px); /* Fill remaining viewport height */
+    transform: translateX(0); /* Always visible on desktop */
+    margin-right: 0; /* No extra margin pushing content */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07); /* Re-apply shadow on desktop */
+  }
+  .filters-sidebar::after {
+      content: none; /* Remove overlay on desktop */
   }
   #mobile-filters-toggle {
-    display: none !important;
+    display: none !important; /* Hide toggle on desktop */
   }
-}
-@media (max-width: 1023px) {
-  .filters-sidebar:not(.active) {
+  .filters-close-button { /* Hide close button on desktop */
     display: none;
-  }
-  .filters-sidebar.active {
-    display: block;
   }
 }
 
@@ -472,20 +523,6 @@ header {
   margin-right: 0.5rem;
 }
 
-#mobile-filters-toggle {
-    background-color: var(--white);
-    color: var(--indigo-600);
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: 1px solid var(--gray-200);
-    width: 100%;
-}
-
 
 /* Recipes Grid & Cards */
 .recipes-content {
@@ -528,13 +565,13 @@ header {
 }
 
 .recipe-card-wrapper {
-  position: relative; /* Essential for positioning the favorite button and clickable link */
-  display: flex; /* Ensures its children are laid out correctly */
-  flex-direction: column; /* Stacks the card and button vertically if not abs positioned */
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .recipes-grid-container .recipe-card-wrapper {
-  width: 100%; /* For grid layout, wrapper takes full column width */
+  width: 100%;
 }
 
 .recipe-card {
@@ -545,14 +582,14 @@ header {
   transition: all 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
-  cursor: default; /* No direct cursor on this, it's on the main link */
-  width: 280px; /* Fixed width for horizontal scroll items */
+  cursor: default;
+  width: 280px;
   flex-shrink: 0;
-  height: 100%; /* Ensure card fills height in wrapper */
+  height: 100%;
 }
 
 .recipes-grid-container .recipe-card {
-  width: 100%; /* In grid, card should take full width */
+  width: 100%;
 }
 
 .recipe-card:hover {
@@ -560,16 +597,12 @@ header {
   transform: translateY(-0.25rem);
 }
 
-/* New clickable area for the main recipe content */
 .recipe-card-main-link {
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  height: 100%; /* Make it fill the parent .recipe-card */
-  width: 100%; /* Make it fill the parent .recipe-card */
-  /* Remove position: relative and z-index from here.
-     The parent .recipe-card-wrapper handles positioning,
-     and the JS event handler is precise. */
+  height: 100%;
+  width: 100%;
 }
 
 .recipe-image-container {
@@ -594,7 +627,7 @@ header {
   backdrop-filter: blur(4px);
   cursor: pointer;
   border: none;
-  z-index: 10; /* Ensures this button is always on top and clickable */
+  z-index: 10;
 }
 
 .favorite-button.active svg {
@@ -759,12 +792,10 @@ header {
 
 #recipe-detail-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   z-index: 40;
   overflow-y: auto;
+  background-color: var(--gray-100);
 }
 
 .recipe-detail-container {
@@ -860,7 +891,7 @@ header {
   padding-left: 1.25rem;
 }
 
-.recipe-card-link { /* This class seems unused or problematic, keeping it but it's not active in current solution */
+.recipe-card-link {
   text-decoration: none;
   color: inherit;
 }

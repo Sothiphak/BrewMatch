@@ -1219,9 +1219,9 @@ function createFilterSelectors() {
     temperature: getUniqueValues(state.recipes, 'temperature'),
     difficulty: ["Any", "Easy", "Medium", "Hard"],
     caffeineLevel: getUniqueValues(state.recipes, 'caffeineLevel'),
-  };button
+  };
 
-  // Build the entire innerHTML for the filtersSidebar, including the close 
+  // Build the entire innerHTML for the filtersSidebar, including the close button
   filtersSidebar.innerHTML = `
     <button class="filters-close-button" aria-label="Hide Filters">
       <i data-lucide="x"></i>

@@ -952,11 +952,15 @@ const recipesContainer = document.getElementById('recipesContainer');
 const favoritesContainer = document.getElementById('favoritesContainer');
 const loginModal = document.getElementById('login-modal');
 const registerModal = document.getElementById('register-modal');
-// These elements are outside the filtersSidebar and remain stable, so global capture is fine
-const mobileFiltersToggle = document.getElementById('mobile-filters-toggle');
+const mobileFiltersToggle = document.getElementById('mobile-filters-toggle'); // Element that remains stable
 const filtersSidebar = document.getElementById('filters-sidebar'); 
 const navLinks = document.querySelectorAll('.nav-link');
 const mainFooter = document.getElementById('main-footer');
+
+// NEW: Mobile Nav elements
+const mobileNav = document.querySelector('.mobile-nav'); //
+const mobileMenuToggle = document.getElementById('mobile-menu-toggle'); //
+const mobileAuthLinks = document.getElementById('mobile-auth-links'); //
 
 // --- HELPER FUNCTIONS ---
 const getUniqueValues = (recipes, key) => {
@@ -1030,6 +1034,11 @@ function updateUIForAuthState(user) {
     pagesContainer.classList.remove('hidden');
     authContainer.innerHTML = `<span class="user-text">${user.email.split('@')[0]}</span><button id="logout-btn" class="auth-button logout-button">Logout</button>`;
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    
+    // Update mobile navigation auth links
+    mobileAuthLinks.innerHTML = `<button id="mobile-logout-btn" class="auth-button logout-button">Logout</button>`; //
+    document.getElementById('mobile-logout-btn').addEventListener('click', handleLogout); //
+
     listenToFavorites(user.uid);
     showPage(state.currentPage);
     mainFooter.style.display = 'block';
@@ -1039,6 +1048,16 @@ function updateUIForAuthState(user) {
     authContainer.innerHTML = `<button id="login-nav-btn" class="auth-button login-button">Login</button><button id="register-nav-btn" class="auth-button register-button">Register</button>`;
     document.getElementById('login-nav-btn').addEventListener('click', () => openModal(loginModal));
     document.getElementById('register-nav-btn').addEventListener('click', () => openModal(registerModal));
+
+    // Update mobile navigation auth links
+    mobileAuthLinks.innerHTML = `
+      <button id="mobile-login-btn" class="auth-button login-button">Login</button>
+      <button id="mobile-register-btn" class="auth-button register-button">Register</button>
+    `; //
+    document.getElementById('mobile-login-btn').addEventListener('click', () => { closeModal(mobileNav); openModal(loginModal); }); // Close mobile nav when opening modal
+    document.getElementById('mobile-register-btn').addEventListener('click', () => { closeModal(mobileNav); openModal(registerModal); }); // Close mobile nav when opening modal
+
+
     if (state.unsubscribeFavorites) { state.unsubscribeFavorites(); state.unsubscribeFavorites = null; }
     state.userFavorites.clear();
     showPage('home');
@@ -1081,6 +1100,7 @@ function setupNavigation() {
       } else {
         openModal(loginModal);
       }
+      mobileNav.classList.add('hidden'); // Close mobile nav after clicking a link
     });
   });
 }
@@ -1427,17 +1447,17 @@ function attachCardEventListeners() {
 function init() {
   lucide.createIcons();
   document.getElementById('currentYear').textContent = new Date().getFullYear();
-  const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-  const mobileNav = document.querySelector('.mobile-nav');
+  
+  // Mobile menu toggle
+  mobileMenuToggle.addEventListener('click', () => { //
+    mobileNav.classList.toggle('hidden'); //
+  });
 
-  mobileMenuToggle.addEventListener('click', () => {
-    mobileNav.classList.toggle('hidden');
+  // NEW: Add event listener for mobile nav close button
+  document.querySelector('.mobile-nav-close-button').addEventListener('click', () => { //
+    mobileNav.classList.add('hidden'); //
   });
-  mobileNav.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => {
-      mobileNav.classList.add('hidden');
-    });
-  });
+
   setupModalTriggers();
   setupNavigation();
   createFilterSelectors(); 

@@ -27,9 +27,14 @@
         </button>
       </div>
       <nav class="mobile-nav hidden">
+        <button class="mobile-nav-close-button" aria-label="Hide Menu">
+          <i data-lucide="x"></i>
+        </button>
         <a href="#" class="nav-link active" data-page="home"><i data-lucide="home"></i> Home</a>
         <a href="#" class="nav-link" data-page="favorites"><i data-lucide="heart"></i> Favorites</a>
         <a href="#" class="nav-link" data-page="about"><i data-lucide="info"></i> About Us</a>
+        <div id="mobile-auth-links">
+          </div>
       </nav>
     </header>
 
@@ -59,8 +64,7 @@
                 <input type="text" id="searchInput" placeholder="Search name, ingredient..." class="search-input" />
                 <i data-lucide="search" class="search-icon h-5 w-5"></i>
               </div>
-              <div id="filterSelectors"></div>
-              <button id="resetFilters" class="reset-filters">
+              <div id="filterSelectorsContent"></div> <button id="resetFilters" class="reset-filters">
                 <i data-lucide="x" class="reset-icon h-5 w-5"></i> Reset All Filters
               </button>
             </aside>
